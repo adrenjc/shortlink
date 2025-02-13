@@ -29,18 +29,25 @@ export default () => {
     actionRef.current?.reload();
   };
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      message.success('复制成功');
-    });
-  };
-
   const columns: ProColumns<LinkItem>[] = [
     {
       title: '短链',
       dataIndex: 'shortUrl',
       search: false,
-      render: (_, record) => <a onClick={() => handleCopy(record.shortUrl)}>{record.shortUrl}</a>,
+      render: (_, record) => (
+        <a
+          href={record.shortUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => {
+            e.preventDefault();
+            message.info('正在打开链接');
+            window.open(record.shortUrl, '_blank');
+          }}
+        >
+          {record.shortUrl}
+        </a>
+      ),
     },
     { title: '原始链接', dataIndex: 'longUrl', ellipsis: true, search: false },
     {
