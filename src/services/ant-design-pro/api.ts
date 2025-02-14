@@ -1,17 +1,9 @@
 // @ts-ignore
 /* eslint-disable */
 import { apiRequest } from '@/services/index'; // 引入封装的请求方法
-import { request } from '@umijs/max';
 
 /** 获取当前的用户 GET /api/currentUser */
 export async function currentUser() {
-  // return request<{
-  //   data: API.CurrentUser;
-  // }>('/api/currentUser', {
-  //   method: 'GET',
-  //   ...(options || {}),
-  // });
-
   try {
     const response = await apiRequest.get(`/user`);
     return response;
@@ -23,10 +15,7 @@ export async function currentUser() {
 
 /** 退出登录接口 POST /api/login/outLogin */
 export async function outLogin(options?: { [key: string]: any }) {
-  return request<Record<string, any>>('/api/login/outLogin', {
-    method: 'POST',
-    ...(options || {}),
-  });
+  localStorage.removeItem('x-auth-token'); // 清空 x-auth-token 的值
 }
 
 /** 登录接口 POST /api/login */

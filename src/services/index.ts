@@ -6,7 +6,7 @@ const API_ENV = process.env.UMI_APP_ENV || 'dev'; // 默认开发环境
 // 环境映射配置
 const ENV_CONFIG = {
   dev: {
-    apiUrl: 'http://localhost:8000', // 开发环境
+    apiUrl: 'http://localhost:5000/api', // 开发环境
   },
   test: {
     apiUrl: 'http://47.107.251.45/api', // 测试环境
