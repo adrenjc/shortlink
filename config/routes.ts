@@ -65,6 +65,12 @@ export default [
     // access: 'canUser', // 权限控制
   },
   {
+    path: '/chat',
+    name: 'AI对话',
+    icon: 'MessageOutlined',
+    component: './Chat',
+  },
+  {
     path: '/',
     redirect: '/short-link',
   },

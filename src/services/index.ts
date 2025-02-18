@@ -22,7 +22,7 @@ const ENV_CONFIG = {
 // 获取当前环境配置
 const currentEnv = ENV_CONFIG[API_ENV as keyof typeof ENV_CONFIG] || ENV_CONFIG.dev;
 
-const API_URL = currentEnv.apiUrl;
+export const API_URL = currentEnv.apiUrl;
 
 // 初始化 axios 实例
 const apiClient = axios.create({
