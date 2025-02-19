@@ -28,18 +28,13 @@ export const API_URL = currentEnv.apiUrl;
 const apiClient = axios.create({
   baseURL: API_URL, // 使用动态配置的 API 地址
   timeout: 10000, // 建议适当延长超时时间
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 // 添加请求拦截器
 apiClient.interceptors.request.use(
   (config: any) => {
-    console.log(process.env);
     // 在发送请求之前做些什么
     config.headers['x-auth-token'] = localStorage.getItem('x-auth-token') || '';
-    config.headers['Content-Type'] = 'application/json';
     return config;
   },
   (error) => {
@@ -75,8 +70,11 @@ export const setRequestHeader = (key: string, value: string) => {
 export const apiRequest = {
   get: async (endpoint: string, params = {}, headers = {}) => {
     try {
-      const response = await apiClient.get(endpoint, { params, headers });
-      return response.data;
+      const response = await apiClient.get(endpoint, {
+        params,
+        headers: { ...apiClient.defaults.headers.common, ...headers },
+      });
+      return response;
     } catch (error) {
       console.error('GET 请求失败:', error);
       throw error;
@@ -85,8 +83,10 @@ export const apiRequest = {
 
   post: async (endpoint: string, data = {}, headers = {}) => {
     try {
-      const response = await apiClient.post(endpoint, data, { headers });
-      return response.data;
+      const response = await apiClient.post(endpoint, data, {
+        headers: { ...apiClient.defaults.headers.common, ...headers },
+      });
+      return response;
     } catch (error) {
       console.error('POST 请求失败:', error);
       throw error;
@@ -95,8 +95,10 @@ export const apiRequest = {
 
   put: async (endpoint: string, data = {}, headers = {}) => {
     try {
-      const response = await apiClient.put(endpoint, data, { headers });
-      return response.data;
+      const response = await apiClient.put(endpoint, data, {
+        headers: { ...apiClient.defaults.headers.common, ...headers },
+      });
+      return response;
     } catch (error) {
       console.error('PUT 请求失败:', error);
       throw error;
@@ -105,8 +107,10 @@ export const apiRequest = {
 
   delete: async (endpoint: string, headers = {}) => {
     try {
-      const response = await apiClient.delete(endpoint, { headers });
-      return response.data;
+      const response = await apiClient.delete(endpoint, {
+        headers: { ...apiClient.defaults.headers.common, ...headers },
+      });
+      return response;
     } catch (error) {
       console.error('DELETE 请求失败:', error);
       throw error;

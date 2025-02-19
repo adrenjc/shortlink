@@ -6,7 +6,7 @@ import { apiRequest } from '@/services/index'; // 引入封装的请求方法
 export async function currentUser() {
   try {
     const response = await apiRequest.get(`/user`);
-    return response;
+    return response.data;
   } catch (error) {
     console.error('获取用户信息失败:', error);
     throw error; // 抛出错误以便调用者处理
@@ -25,12 +25,12 @@ export async function login(body: API.LoginParams) {
     const response = await apiRequest.post(`/login`, body, {
       headers: { 'Content-Type': 'application/json' },
     });
-    const token = response.token;
+    const token = response.data.token;
     if (token) {
       localStorage.setItem('x-auth-token', token);
     }
 
-    return response;
+    return response.data;
   } catch (error) {
     console.error('登录失败:', error);
     throw error; // 抛出错误以便调用者处理

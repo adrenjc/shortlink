@@ -1,4 +1,4 @@
-import { API_URL } from './index';
+import { API_URL, apiRequest } from './index';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -13,20 +13,25 @@ export interface Chat {
   updatedAt: string;
 }
 
-// 获取对话列表
-export async function getChats() {
+/**
+ * 获取所有对话
+ * @returns {Promise<Chat[]>} 返回用户的所有对话
+ * @throws {Error} 如果请求失败或响应格式不正确
+ */
+export async function getChats(): Promise<Chat[]> {
   try {
-    const response = await fetch(`${API_URL}/chats`, {
-      headers: {
-        'x-auth-token': `${localStorage.getItem('x-auth-token')}`,
-      },
-    });
+    const response = await apiRequest.get(`/chats`);
+    // const response = await fetch(`${API_URL}/chats`, {
+    //   headers: {
+    //     'x-auth-token': `${localStorage.getItem('x-auth-token')}`,
+    //   },
+    // });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (!response.data.success) {
+      throw new Error(`HTTP error! status: ${response.data.message}`);
     }
 
-    const result = await response.json();
+    const result = await response.data;
     return result.data;
   } catch (error) {
     console.error('Get Chats Error:', error);
@@ -34,20 +39,18 @@ export async function getChats() {
   }
 }
 
-// 获取特定对话历史
-export async function getChatHistory(chatId: string) {
+/**
+ * 获取特定对话的历史记录
+ * @param {string} chatId - 对话的唯一标识符
+ * @returns {Promise<{ messages: Message[] }>} 返回指定对话的历史记录
+ * @throws {Error} 如果请求失败或响应格式不正确
+ */
+export async function getChatHistory(chatId: string): Promise<{ messages: Message[] }> {
+  // console.log(response1, 'response1');
   try {
-    const response = await fetch(`${API_URL}/chats/${chatId}`, {
-      headers: {
-        'x-auth-token': `${localStorage.getItem('x-auth-token')}`,
-      },
-    });
+    const response = await apiRequest.get(`/chats/${chatId}`);
+    const result = response.data;
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const result = await response.json();
     console.log('API 返回的原始数据:', result); // 添加日志
 
     // 确保返回正确的数据结构
@@ -72,29 +75,46 @@ export async function getChatHistory(chatId: string) {
   }
 }
 
-// 删除对话
-export async function deleteChat(chatId: string) {
+/**
+ * 删除特定对话
+ * @param {string} chatId - 对话的唯一标识符
+ * @returns {Promise<{ success: boolean, message: string }>} 返回删除结果
+ * @throws {Error} 如果请求失败或响应格式不正确
+ */
+export async function deleteChat(chatId: string): Promise<{ success: boolean; message: string }> {
   try {
-    const response = await fetch(`${API_URL}/chats/${chatId}`, {
-      method: 'DELETE',
-      headers: {
-        'x-auth-token': `${localStorage.getItem('x-auth-token')}`,
-      },
-    });
+    const response = await apiRequest.delete(`/chats/${chatId}`);
+    // const response = await fetch(`${API_URL}/chats/${chatId}`, {
+    //   method: 'DELETE',
+    //   headers: {
+    //     'x-auth-token': `${localStorage.getItem('x-auth-token')}`,
+    //   },
+    // });
 
-    if (!response.ok) {
+    if (!response.data.success) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    return await response.data;
   } catch (error) {
     console.error('Delete Chat Error:', error);
     throw error;
   }
 }
 
-// 修改现有的 chatWithAI 函数
-export async function chatWithAI(messages: Message[], chatId?: string, signal?: AbortSignal) {
+/**
+ * 流式聊天
+ * @param {Message[]} messages - 包含聊天消息的数组，每个消息应包含 role 和 content 字段
+ * @param {string} [chatId] - 如果存在，更新现有对话
+ * @param {AbortSignal} [signal] - 可选的中止信号
+ * @returns {Promise<Response>} 返回流式响应
+ * @throws {Error} 如果请求失败或响应格式不正确
+ */
+export async function chatWithAI(
+  messages: Message[],
+  chatId?: string,
+  signal?: AbortSignal,
+): Promise<Response> {
   try {
     const response = await fetch(`${API_URL}/chat`, {
       method: 'POST',

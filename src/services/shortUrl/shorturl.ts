@@ -5,7 +5,7 @@ import { apiRequest } from '@/services/index'; // 引入封装的请求方法
 export const createShortLink = async (longUrl: string): Promise<any> => {
   try {
     const response = await apiRequest.post(`/links`, { longUrl });
-    return response;
+    return response.data;
   } catch (error) {
     console.error('创建短链接错误:', error);
     throw error; // 抛出错误以便调用者处理
@@ -16,7 +16,7 @@ export const createShortLink = async (longUrl: string): Promise<any> => {
 export const fetchLinks = async (params?: { [key: string]: any }): Promise<any> => {
   try {
     const response = await apiRequest.get(`/links`, { params });
-    return response;
+    return response.data;
   } catch (error) {
     console.error('获取短链接错误:', error);
     throw error; // 抛出错误以便调用者处理

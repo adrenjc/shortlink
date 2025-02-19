@@ -69,6 +69,12 @@ export default [
     name: 'AI对话',
     icon: 'MessageOutlined',
     component: './Chat',
+    routes: [
+      {
+        path: '/chat',
+        component: './Chat/index',
+      },
+    ],
   },
   {
     path: '/',

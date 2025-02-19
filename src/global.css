@@ -2,3 +2,13 @@
 .markdown-body p {
   margin: 0 !important;
 } 
+
+.ant-pro-layout .ant-pro-layout-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: transparent;
+  position: relative;
+  /* padding-block: 0 !important; */
+  padding-inline: 0 !important;
+}
