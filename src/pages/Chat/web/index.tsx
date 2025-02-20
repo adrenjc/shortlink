@@ -86,9 +86,18 @@ const WebChat: React.FC = () => {
   }, [messages, streamingContent, streamingReasoning]);
 
   const handleNewChat = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setIsStreaming(false);
+      setLoading(false);
+    }
+
     setCurrentChatId(null);
     setMessages([]);
     setInput('');
+    setStreamingContent('');
+    setStreamingReasoning('');
   };
 
   const handleDeleteChat = async (chatId: string) => {
@@ -217,6 +226,7 @@ const WebChat: React.FC = () => {
           icon={<MessageOutlined />}
           className={styles.newChatButton}
           onClick={handleNewChat}
+          disabled={loading || isStreaming}
         >
           新建对话
         </Button>
@@ -267,7 +277,9 @@ const WebChat: React.FC = () => {
                   <div className={styles.messageText}>
                     {msg.role === 'assistant' && msg.reasoning && (
                       <div className={styles.reasoningText}>
-                        思考过程：
+                        <div style={{ marginBottom: '4px', fontWeight: 500, color: '#666' }}>
+                          思考过程
+                        </div>
                         <Markdown>{msg.reasoning}</Markdown>
                       </div>
                     )}
@@ -291,7 +303,9 @@ const WebChat: React.FC = () => {
                   <div className={styles.messageText}>
                     {streamingReasoning && (
                       <div className={styles.reasoningText}>
-                        思考过程：
+                        <div style={{ marginBottom: '4px', fontWeight: 500, color: '#666' }}>
+                          思考过程
+                        </div>
                         <Markdown>{streamingReasoning}</Markdown>
                       </div>
                     )}

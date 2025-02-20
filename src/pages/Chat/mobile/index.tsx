@@ -1,11 +1,13 @@
-import { chatWithAI, getChatHistory, getChats } from '@/services/chat';
+import { chatWithAI, deleteChat, getChatHistory, getChats } from '@/services/chat';
 import {
+  ContainerOutlined,
+  DeleteOutlined,
   FullscreenExitOutlined,
   SendOutlined,
   SlidersOutlined,
   WechatWorkOutlined,
 } from '@ant-design/icons';
-import { Button, Input, List, message } from 'antd';
+import { Button, Input, List, Modal, message } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 import logo from '../../../../public/537.svg';
@@ -34,6 +36,7 @@ const MobileChat: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [deletingChatId, setDeletingChatId] = useState<string | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -146,24 +149,36 @@ const MobileChat: React.FC = () => {
     }
   };
 
-  return (
-    <div className={styles.pageContainer}>
-      <div className={styles.header}>
-        <Button
-          type="text"
-          icon={<SlidersOutlined />}
-          onClick={() => setIsMenuVisible(!isMenuVisible)}
-          className={styles.menuButton}
-        />
-        <Button
-          type="text"
-          icon={<WechatWorkOutlined />}
-          onClick={handleNewChat}
-          className={styles.menuButton}
-        ></Button>
-      </div>
+  const handleDeleteChat = async (chatId: string) => {
+    try {
+      await deleteChat(chatId);
+      message.success('对话已删除');
+      const updatedChats = await getChats();
+      setChats(updatedChats);
+      if (chatId === currentChatId) {
+        setCurrentChatId('');
+        setMessages([]);
+      }
+    } catch (error) {
+      message.error('删除失败，请重试');
+    }
+    setDeletingChatId(null);
+  };
 
-      <div className={`${styles.chatList} ${isMenuVisible ? styles.chatListVisible : ''}`}>
+  const showDeleteConfirm = (chatId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeletingChatId(chatId);
+    setIsMenuVisible(false);
+  };
+
+  return (
+    <>
+      <div
+        className={`${styles.overlay} ${isMenuVisible ? 'visible' : ''}`}
+        onClick={() => setIsMenuVisible(false)}
+      />
+
+      <aside className={`${styles.chatList} ${isMenuVisible ? styles.chatListVisible : ''}`}>
         <div className={styles.chatListHeader}>
           <span>对话列表</span>
           <Button
@@ -177,85 +192,142 @@ const MobileChat: React.FC = () => {
             dataSource={chats}
             renderItem={(chat) => (
               <div
-                className={styles.chatItem}
+                key={chat._id}
+                className={`${styles.chatItem} ${chat._id === currentChatId ? styles.active : ''}`}
                 onClick={() => {
                   setCurrentChatId(chat._id);
                   loadChatHistory(chat._id);
-                  setIsMenuVisible(false); // 关闭遮罩
+                  setIsMenuVisible(false);
                 }}
               >
-                <span>{chat.title}</span>
+                <div className={styles.chatItemLeft}>
+                  <ContainerOutlined style={{ fontSize: '16px', opacity: 0.7, color: '#7C3AED' }} />
+                  <span>{chat.title}</span>
+                </div>
+                <Button
+                  type="text"
+                  className={styles.deleteButton}
+                  icon={<DeleteOutlined />}
+                  onClick={(e) => showDeleteConfirm(chat._id, e)}
+                />
               </div>
             )}
           />
         </div>
-      </div>
+      </aside>
 
-      <div className={styles.messageContainer}>
-        {messages.length === 0 && (
-          <div className={styles.welcomeMessage}>
-            <img className={styles.logoContainer} src={logo} alt="logo" />
-            <p>我是 DeepSeek，很高兴见到你！</p>
-          </div>
-        )}
-        {messages.map((msg, index) => (
-          <div
-            key={index}
-            className={`${styles.messageItem} ${msg.role === 'user' ? styles.userMessage : ''}`}
-          >
-            {msg.reasoning && (
-              <div className={styles.reasoningText}>
-                <Markdown>{msg.reasoning}</Markdown>
-              </div>
-            )}
-            <div
-              className={`${styles.messageContent} ${
-                msg.role === 'user' ? styles.userMessageContent : styles.assistantMessageContent
-              }`}
+      <Modal
+        title={null}
+        open={!!deletingChatId}
+        onCancel={() => setDeletingChatId(null)}
+        footer={null}
+        width={300}
+        className={styles.deleteModal}
+        maskStyle={{
+          background: 'rgba(0, 0, 0, 0.4)',
+          backdropFilter: 'blur(8px)',
+        }}
+      >
+        <div className={styles.modalContent}>
+          <div className={styles.modalTitle}>删除对话</div>
+          <div className={styles.modalText}>确定要删除这个对话吗？此操作无法撤销。</div>
+          <div className={styles.modalButtons}>
+            <Button onClick={() => setDeletingChatId(null)}>取消</Button>
+            <Button
+              type="primary"
+              danger
+              onClick={() => deletingChatId && handleDeleteChat(deletingChatId)}
             >
-              <Markdown>{msg.content}</Markdown>
-            </div>
+              删除
+            </Button>
           </div>
-        ))}
-        {streamingReasoning && (
-          <div className={styles.reasoningText}>
-            <Markdown>{streamingReasoning}</Markdown>
-          </div>
-        )}
+        </div>
+      </Modal>
 
-        {streamingContent && (
-          <div className={`${styles.messageItem}`}>
-            <div className={styles.assistantMessageContent}>
-              <Markdown>{streamingContent}</Markdown>
-            </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      <div className={styles.inputArea}>
-        <div className={styles.inputContainer}>
-          <Input.TextArea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="输入消息..."
-            autoSize={{ minRows: 1, maxRows: 4 }}
-            className={styles.textArea}
-            disabled={isLoading}
+      <div className={styles.pageContainer}>
+        <div className={styles.header}>
+          <Button
+            type="text"
+            icon={<SlidersOutlined />}
+            onClick={() => setIsMenuVisible(!isMenuVisible)}
+            className={styles.menuButton}
           />
           <Button
-            type="primary"
-            icon={<SendOutlined />}
-            onClick={handleSend}
-            className={styles.sendButton}
-            loading={isLoading}
-            disabled={!input.trim() || isLoading}
+            type="text"
+            icon={<WechatWorkOutlined />}
+            onClick={handleNewChat}
+            className={styles.menuButton}
           />
         </div>
+
+        <div className={styles.messageContainer}>
+          {messages.length === 0 && (
+            <div className={styles.welcomeMessage}>
+              <div className={styles.logoContainer}>
+                <img src={logo} alt="logo" style={{ width: '100%', height: '100%' }} />
+              </div>
+              <p>Hi，我是 DeepSeek，让我们开始对话吧！</p>
+            </div>
+          )}
+          {messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`${styles.messageItem} ${msg.role === 'user' ? styles.userMessage : ''}`}
+            >
+              {msg.reasoning && (
+                <div className={styles.reasoningText}>
+                  <Markdown>{msg.reasoning}</Markdown>
+                </div>
+              )}
+              <div
+                className={`${styles.messageContent} ${
+                  msg.role === 'user' ? styles.userMessageContent : styles.assistantMessageContent
+                }`}
+              >
+                <Markdown>{msg.content}</Markdown>
+              </div>
+            </div>
+          ))}
+          {streamingReasoning && (
+            <div className={styles.reasoningText}>
+              <Markdown>{streamingReasoning}</Markdown>
+            </div>
+          )}
+
+          {streamingContent && (
+            <div className={`${styles.messageItem}`}>
+              <div className={styles.assistantMessageContent}>
+                <Markdown>{streamingContent}</Markdown>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        <div className={styles.inputArea}>
+          <div className={styles.inputContainer}>
+            <Input.TextArea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="输入消息..."
+              autoSize={{ minRows: 1, maxRows: 4 }}
+              className={styles.textArea}
+              disabled={isLoading}
+            />
+            <Button
+              type="primary"
+              icon={<SendOutlined />}
+              onClick={handleSend}
+              className={styles.sendButton}
+              loading={isLoading}
+              disabled={!input.trim() || isLoading}
+            />
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

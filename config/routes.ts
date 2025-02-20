@@ -58,13 +58,6 @@ export default [
   //   component: './Table',
   // },
   {
-    path: '/short-link',
-    name: '短链管理',
-    icon: 'LinkOutlined',
-    component: '@/pages/ShortLink',
-    // access: 'canUser', // 权限控制
-  },
-  {
     path: '/chat',
     name: 'AI对话',
     icon: 'MessageOutlined',
@@ -77,8 +70,16 @@ export default [
     ],
   },
   {
+    path: '/short-link',
+    name: '短链管理',
+    icon: 'LinkOutlined',
+    component: '@/pages/ShortLink',
+    // access: 'canUser', // 权限控制
+  },
+
+  {
     path: '/',
-    redirect: '/short-link',
+    redirect: '/chat',
   },
   {
     path: '*',

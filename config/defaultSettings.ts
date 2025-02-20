@@ -15,7 +15,7 @@ const Settings: ProLayoutProps & {
   fixedHeader: false,
   fixSiderbar: true,
   colorWeak: false,
-  title: '短链管理',
+  title: 'AI对话',
   pwa: true,
   logo: '/537.svg',
   iconfontUrl: '',
