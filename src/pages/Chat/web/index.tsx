@@ -1,9 +1,10 @@
-import { Chat, Message, chatWithAI, deleteChat, getChatHistory, getChats } from '@/services/chat';
+import { chatWithAI, deleteChat, getChatHistory, getChats } from '@/services/chat';
 import { CloseOutlined, DeleteOutlined, MessageOutlined, SendOutlined } from '@ant-design/icons';
 import { Button, Input, List, Modal, message } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 import logo from '../../../../public/537.svg';
+import { Chat, Message } from '../types';
 import { useStyles } from './styles';
 
 const WebChat: React.FC = () => {
@@ -18,6 +19,11 @@ const WebChat: React.FC = () => {
   const [streamingReasoning, setStreamingReasoning] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const contentBufferRef = useRef<string>('');
+  const reasoningBufferRef = useRef<string>('');
+  const rafIdRef = useRef<number | null>(null);
+  const lastUpdateTimeRef = useRef<number>(0);
+  const batchSizeRef = useRef<number>(0);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -129,6 +135,29 @@ const WebChat: React.FC = () => {
     }
   };
 
+  const scheduleUpdate = (content: string, reasoning: string) => {
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current);
+    }
+
+    const now = performance.now();
+    if (now - lastUpdateTimeRef.current < 16) {
+      batchSizeRef.current++;
+    } else {
+      batchSizeRef.current = 0;
+    }
+
+    const shouldUpdate = batchSizeRef.current < 5;
+
+    rafIdRef.current = requestAnimationFrame(() => {
+      if (shouldUpdate) {
+        setStreamingContent(content);
+        setStreamingReasoning(reasoning);
+        lastUpdateTimeRef.current = performance.now();
+      }
+    });
+  };
+
   const handleSend = async () => {
     if (!input.trim() || loading) return;
 
@@ -140,10 +169,17 @@ const WebChat: React.FC = () => {
     setStreamingContent('');
     setStreamingReasoning('');
 
+    contentBufferRef.current = '';
+    reasoningBufferRef.current = '';
+    batchSizeRef.current = 0;
+    lastUpdateTimeRef.current = 0;
+
     abortControllerRef.current = new AbortController();
 
     try {
       let chatId = currentChatId;
+      const decoder = new TextDecoder();
+      let buffer = '';
 
       const response = await chatWithAI(
         [...messages, userMessage],
@@ -154,31 +190,28 @@ const WebChat: React.FC = () => {
       const reader = response.body?.getReader();
       if (!reader) throw new Error('No reader available');
 
-      let fullContent = '';
-      let fullReasoning = '';
-
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = new TextDecoder().decode(value);
-        const lines = chunk.split('\n');
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
-          if (line.trim() === '') continue;
-          if (line.includes('[DONE]')) continue;
+          if (line.trim() === '' || line.includes('[DONE]')) continue;
 
           try {
             const jsonStr = line.replace('data: ', '').trim();
             const parsed = JSON.parse(jsonStr);
 
             if (parsed.type === 'reasoning' && parsed.reasoning) {
-              fullReasoning += parsed.reasoning;
-              setStreamingReasoning(fullReasoning);
+              reasoningBufferRef.current += parsed.reasoning;
             } else if (parsed.type === 'content' && parsed.content) {
-              fullContent += parsed.content;
-              setStreamingContent(fullContent);
+              contentBufferRef.current += parsed.content;
             }
+
+            scheduleUpdate(contentBufferRef.current, reasoningBufferRef.current);
           } catch (e) {
             console.error('解析响应数据失败:', e, line);
           }
@@ -189,8 +222,8 @@ const WebChat: React.FC = () => {
         ...prev,
         {
           role: 'assistant',
-          content: fullContent,
-          reasoning: fullReasoning,
+          content: contentBufferRef.current,
+          reasoning: reasoningBufferRef.current,
         },
       ]);
       setStreamingContent('');
@@ -210,6 +243,11 @@ const WebChat: React.FC = () => {
       setLoading(false);
       setIsStreaming(false);
       abortControllerRef.current = null;
+
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+
       if (!currentChatId) {
         const chatList = await getChats();
         setChats(chatList);
@@ -217,6 +255,14 @@ const WebChat: React.FC = () => {
       }
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className={styles.pageContainer}>

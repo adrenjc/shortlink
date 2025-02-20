@@ -162,7 +162,7 @@ export const useStyles = createStyles(({ token }) => ({
       top: '0',
       bottom: '0',
       width: '3px',
-      background: 'linear-gradient(180deg, #1677ff 0%, rgba(22, 119, 255, 0.3) 100%)',
+      background: 'linear-gradient(135deg,  rgb(255, 255, 255) 0%, #7C4DFF 100%)',
       borderRadius: '3px',
     },
     '& p': {

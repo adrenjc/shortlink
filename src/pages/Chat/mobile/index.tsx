@@ -38,6 +38,14 @@ const MobileChat: React.FC = () => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [deletingChatId, setDeletingChatId] = useState<string | null>(null);
 
+  // 添加新的性能优化相关的 refs
+  const contentBufferRef = useRef<string>('');
+  const reasoningBufferRef = useRef<string>('');
+  const rafIdRef = useRef<number | null>(null);
+  const lastUpdateTimeRef = useRef<number>(0);
+  const batchSizeRef = useRef<number>(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -75,6 +83,30 @@ const MobileChat: React.FC = () => {
     setInput('');
   };
 
+  // 添加高效的更新调度函数
+  const scheduleUpdate = (content: string, reasoning: string) => {
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current);
+    }
+
+    const now = performance.now();
+    if (now - lastUpdateTimeRef.current < 16) {
+      batchSizeRef.current++;
+    } else {
+      batchSizeRef.current = 0;
+    }
+
+    const shouldUpdate = batchSizeRef.current < 5;
+
+    rafIdRef.current = requestAnimationFrame(() => {
+      if (shouldUpdate) {
+        setStreamingContent(content);
+        setStreamingReasoning(reasoning);
+        lastUpdateTimeRef.current = performance.now();
+      }
+    });
+  };
+
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -85,32 +117,47 @@ const MobileChat: React.FC = () => {
     setStreamingReasoning('');
     setInput('');
 
+    // 重置所有缓存
+    contentBufferRef.current = '';
+    reasoningBufferRef.current = '';
+    batchSizeRef.current = 0;
+    lastUpdateTimeRef.current = 0;
+
+    abortControllerRef.current = new AbortController();
+
     try {
-      const response = await chatWithAI([...messages, newMessage], currentChatId || '');
+      const response = await chatWithAI(
+        [...messages, newMessage],
+        currentChatId || '',
+        abortControllerRef.current.signal,
+      );
+
       const reader = response.body?.getReader();
       if (!reader) throw new Error('No reader available');
 
-      let fullContent = '';
-      let fullReasoning = '';
+      const decoder = new TextDecoder();
+      let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = new TextDecoder().decode(value);
-        const lines = chunk.split('\n').filter((line) => line.trim() !== '');
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
+          if (line.trim() === '' || line.includes('[DONE]')) continue;
+
           if (line.startsWith('data: ')) {
             try {
               const data = JSON.parse(line.substring(6));
-              if (data.type === 'content') {
-                fullContent += data.content;
-                setStreamingContent(fullContent);
-              } else if (data.type === 'reasoning') {
-                fullReasoning += data.reasoning;
-                setStreamingReasoning(fullReasoning);
+              if (data.type === 'content' && data.content) {
+                contentBufferRef.current += data.content;
+              } else if (data.type === 'reasoning' && data.reasoning) {
+                reasoningBufferRef.current += data.reasoning;
               }
+              scheduleUpdate(contentBufferRef.current, reasoningBufferRef.current);
             } catch (e) {
               console.error('Parse streaming data failed:', e);
             }
@@ -120,7 +167,11 @@ const MobileChat: React.FC = () => {
 
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: fullContent, reasoning: fullReasoning },
+        {
+          role: 'assistant',
+          content: contentBufferRef.current,
+          reasoning: reasoningBufferRef.current,
+        },
       ]);
     } catch (error: any) {
       if (error.name === 'AbortError') {
@@ -134,6 +185,11 @@ const MobileChat: React.FC = () => {
       setIsLoading(false);
       setStreamingContent('');
       setStreamingReasoning('');
+
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+
       if (!currentChatId) {
         const chatList = await getChats();
         setChats(chatList);
@@ -169,6 +225,27 @@ const MobileChat: React.FC = () => {
     e.stopPropagation();
     setDeletingChatId(chatId);
     setIsMenuVisible(false);
+  };
+
+  // 添加清理函数
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  // 添加中止请求的函数
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -306,6 +383,11 @@ const MobileChat: React.FC = () => {
 
         <div className={styles.inputArea}>
           <div className={styles.inputContainer}>
+            {isLoading && (
+              <Button type="text" onClick={handleStop} className={styles.stopButton}>
+                停止生成
+              </Button>
+            )}
             <Input.TextArea
               ref={inputRef}
               value={input}

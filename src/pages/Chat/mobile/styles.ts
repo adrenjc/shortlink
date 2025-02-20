@@ -289,4 +289,17 @@ export const useStyles = createStyles(({ token }) => ({
       height: '36px',
     },
   },
+  active: {
+    background: 'rgba(124, 58, 237, 0.08)',
+    color: '#7C3AED',
+    borderLeft: '3px solid #7C3AED',
+  },
+  stopButton: {
+    marginBottom: '8px',
+    width: '100%',
+    background: 'rgba(0, 0, 0, 0.05)',
+    border: 'none',
+    borderRadius: '8px',
+    color: token.colorTextSecondary,
+  },
 }));
