@@ -35,6 +35,7 @@ const WebChat: React.FC = () => {
   const loadChats = async () => {
     try {
       const chatList = await getChats();
+
       setChats(chatList);
     } catch (error) {
       message.error('加载对话列表失败');
@@ -133,11 +134,14 @@ const WebChat: React.FC = () => {
     abortControllerRef.current = new AbortController();
 
     try {
+      let chatId = currentChatId;
+
       const response = await chatWithAI(
         [...messages, userMessage],
-        currentChatId || '',
+        chatId || '',
         abortControllerRef.current.signal,
       );
+
       const reader = response.body?.getReader();
       if (!reader) throw new Error('No reader available');
 
@@ -197,7 +201,11 @@ const WebChat: React.FC = () => {
       setLoading(false);
       setIsStreaming(false);
       abortControllerRef.current = null;
-      loadChats();
+      if (!currentChatId) {
+        const chatList = await getChats();
+        setChats(chatList);
+        setCurrentChatId(chatList[0]._id);
+      }
     }
   };
 

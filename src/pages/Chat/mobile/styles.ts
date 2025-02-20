@@ -43,6 +43,7 @@ export const useStyles = createStyles(({ token }) => ({
   },
   chatListVisible: {
     transform: 'translateX(0)',
+    boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
   },
   chatListHeader: {
     height: '44px',
@@ -67,11 +68,10 @@ export const useStyles = createStyles(({ token }) => ({
   },
   messageContainer: {
     flex: 1,
-    overflowY: 'hidden',
-    // marginTop: '44px',
-    // marginBottom: '46px',
-    WebkitOverflowScrolling: 'touch',
-    // paddingTop: '56px', // 为系统导航预留空间
+    overflowY: 'auto',
+    padding: '1rem',
+    scrollBehavior: 'smooth',
+    '-webkit-overflow-scrolling': 'touch', // 为iOS添加平滑滚动
   },
   welcomeMessage: {
     display: 'flex',
@@ -170,5 +170,18 @@ export const useStyles = createStyles(({ token }) => ({
     width: '36px',
     minWidth: '36px',
     borderRadius: '50%',
+  },
+  overlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 100,
+    display: 'none',
+    '&.visible': {
+      display: 'block',
+    },
   },
 }));

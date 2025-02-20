@@ -11,16 +11,29 @@ import Markdown from 'react-markdown';
 import logo from '../../../../public/537.svg';
 import { useStyles } from './styles';
 
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+  reasoning?: string;
+}
+
+interface Chat {
+  _id: string;
+  title: string;
+}
+
 const MobileChat: React.FC = () => {
   const { styles } = useStyles();
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const [chats, setChats] = useState<any[]>([]);
+  const [chats, setChats] = useState<Chat[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [streamingContent, setStreamingContent] = useState('');
   const [streamingReasoning, setStreamingReasoning] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -60,8 +73,10 @@ const MobileChat: React.FC = () => {
   };
 
   const handleSend = async () => {
-    if (!input.trim()) return;
-    const newMessage = { role: 'user', content: input.trim() };
+    if (!input.trim() || isLoading) return;
+
+    setIsLoading(true);
+    const newMessage = { role: 'user' as const, content: input.trim() };
     setMessages((prev) => [...prev, newMessage]);
     setStreamingContent('');
     setStreamingReasoning('');
@@ -84,13 +99,17 @@ const MobileChat: React.FC = () => {
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const data = JSON.parse(line.substring(6));
-            if (data.type === 'content') {
-              fullContent += data.content;
-              setStreamingContent(fullContent);
-            } else if (data.type === 'reasoning') {
-              fullReasoning += data.reasoning;
-              setStreamingReasoning(fullReasoning);
+            try {
+              const data = JSON.parse(line.substring(6));
+              if (data.type === 'content') {
+                fullContent += data.content;
+                setStreamingContent(fullContent);
+              } else if (data.type === 'reasoning') {
+                fullReasoning += data.reasoning;
+                setStreamingReasoning(fullReasoning);
+              }
+            } catch (e) {
+              console.error('Parse streaming data failed:', e);
             }
           }
         }
@@ -100,20 +119,30 @@ const MobileChat: React.FC = () => {
         ...prev,
         { role: 'assistant', content: fullContent, reasoning: fullReasoning },
       ]);
-      setStreamingContent('');
-      setStreamingReasoning('');
     } catch (error: any) {
       if (error.name === 'AbortError') {
         message.info('已停止响应');
       } else {
-        if (error instanceof Error) {
-          message.error(`发送消息失败: ${error.message}`);
-        } else {
-          message.error('发送消息失败，请重试');
-        }
+        message.error(
+          error instanceof Error ? `发送消息失败: ${error.message}` : '发送消息失败，请重试',
+        );
       }
     } finally {
-      loadChats();
+      setIsLoading(false);
+      setStreamingContent('');
+      setStreamingReasoning('');
+      if (!currentChatId) {
+        const chatList = await getChats();
+        setChats(chatList);
+        setCurrentChatId(chatList[0]._id);
+      }
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
   };
 
@@ -207,17 +236,22 @@ const MobileChat: React.FC = () => {
       <div className={styles.inputArea}>
         <div className={styles.inputContainer}>
           <Input.TextArea
+            ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyPress={handleKeyPress}
             placeholder="输入消息..."
             autoSize={{ minRows: 1, maxRows: 4 }}
             className={styles.textArea}
+            disabled={isLoading}
           />
           <Button
             type="primary"
             icon={<SendOutlined />}
             onClick={handleSend}
             className={styles.sendButton}
+            loading={isLoading}
+            disabled={!input.trim() || isLoading}
           />
         </div>
       </div>
