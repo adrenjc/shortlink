@@ -5,16 +5,30 @@ const API_ENV = process.env.UMI_APP_ENV || 'dev'; // 默认开发环境
 
 // 根据域名获取对应的API地址
 const getDomainApiUrl = (): string => {
-  const hostname = window.location.hostname;
+  const hostname = window.location.hostname.toLowerCase(); // 转换为小写，增加匹配容错性
 
-  const domainApiMap = {
-    'www.duckchat.icu': 'https://www.duckchat.icu/api',
-    'www.duckchat.xyz': 'https://www.duckchat.xyz/api',
-    'www.duckchat.fun': 'https://www.duckchat.fun/api',
-    'www.adrenjc.top': 'https://www.adrenjc.top/api',
-  };
+  // 域名映射配置
+  const domainConfigs = [
+    {
+      pattern: /^(?:www\.)?duckchat\.(icu|xyz|fun)$/,
+      getApiUrl: (domain: string) => `https://www.duckchat.${domain}/api`,
+    },
+    {
+      pattern: /^(?:www\.)?adrenjc\.top$/,
+      getApiUrl: () => 'https://www.adrenjc.top/api',
+    },
+  ];
 
-  return domainApiMap[hostname as keyof typeof domainApiMap] || 'http://47.83.207.5/api'; // 默认返回duck.icu的API
+  // 尝试匹配域名
+  for (const config of domainConfigs) {
+    const match = hostname.match(config.pattern);
+    if (match) {
+      return config.getApiUrl(match[1]);
+    }
+  }
+
+  // 如果没有匹配到，返回默认API地址
+  return 'http://47.83.207.5/api';
 };
 
 // 环境映射配置
