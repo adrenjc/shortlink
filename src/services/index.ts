@@ -8,6 +8,7 @@ const getDomainApiUrl = (): string => {
   const hostname = window.location.hostname;
 
   const domainApiMap = {
+    'adrenjc.top': 'https://www.adrenjc.top/api',
     'www.adrenjc.top': 'https://www.adrenjc.top/api',
   };
 
