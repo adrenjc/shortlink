@@ -11,6 +11,7 @@ const getDomainApiUrl = (): string => {
     'www.duckchat.icu': 'https://www.duckchat.icu/api',
     'www.duckchat.xyz': 'https://www.duckchat.xyz/api',
     'www.duckchat.fun': 'https://www.duckchat.fun/api',
+    'www.adrenjc.top': 'https://www.adrenjc.top/api',
   };
 
   return domainApiMap[hostname as keyof typeof domainApiMap] || 'http://47.83.207.5/api'; // 默认返回duck.icu的API
