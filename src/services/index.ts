@@ -3,19 +3,32 @@ import axios from 'axios';
 // 环境配置
 const API_ENV = process.env.UMI_APP_ENV || 'dev'; // 默认开发环境
 
+// 根据域名获取对应的API地址
+const getDomainApiUrl = (): string => {
+  const hostname = window.location.hostname;
+
+  const domainApiMap = {
+    'www.duckchat.icu': 'https://api.duckchat.icu/api',
+    'www.duckchat.xyz': 'https://api.duckchat.xyz/api',
+    'www.duckchat.fun': 'https://api.duckchat.fun/api',
+  };
+
+  return domainApiMap[hostname as keyof typeof domainApiMap] || 'http://47.83.207.5/api'; // 默认返回duck.icu的API
+};
+
 // 环境映射配置
 const ENV_CONFIG = {
   dev: {
     apiUrl: 'http://localhost:5000/api', // 开发环境
   },
   test: {
-    apiUrl: '47.83.207.5/api', // 测试环境
+    apiUrl: 'http://47.83.207.5/api', // 测试环境
   },
   pre: {
-    apiUrl: '47.83.207.5/api', // 预发环境
+    apiUrl: 'http://47.83.207.5/api', // 预发环境
   },
   prod: {
-    apiUrl: '47.83.207.5/api', // 生产环境
+    apiUrl: getDomainApiUrl(), // 根据域名动态获取API地址
   },
 };
 
