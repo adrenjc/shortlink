@@ -3,19 +3,29 @@ import axios from 'axios';
 // 环境配置
 const API_ENV = process.env.UMI_APP_ENV || 'dev'; // 默认开发环境
 
-// 环境映射配置
+// 根据域名获取对应的API地址
+const getDomainApiUrl = (): string => {
+  const hostname = window.location.hostname;
+
+  const domainApiMap = {
+    'www.adrenjc.top': 'https://www.adrenjc.top/api',
+  };
+
+  return domainApiMap[hostname as keyof typeof domainApiMap] || 'http://47.83.207.5/api'; // 默认返回duck.icu的API
+};
+
 const ENV_CONFIG = {
   dev: {
     apiUrl: 'http://localhost:5000/api', // 开发环境
   },
   test: {
-    apiUrl: 'http://47.107.251.45/api', // 测试环境
+    apiUrl: 'http://47.83.207.5/api', // 测试环境
   },
   pre: {
-    apiUrl: 'http://47.107.251.45/api', // 预发环境
+    apiUrl: 'http://47.83.207.5/api', // 预发环境
   },
   prod: {
-    apiUrl: 'http://47.107.251.45/api', // 生产环境
+    apiUrl: getDomainApiUrl(), // 根据域名动态获取API地址
   },
 };
 
