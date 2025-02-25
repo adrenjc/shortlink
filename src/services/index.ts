@@ -9,13 +9,13 @@ const ENV_CONFIG = {
     apiUrl: 'http://localhost:5000/api', // 开发环境
   },
   test: {
-    apiUrl: 'http://47.107.251.45/api', // 测试环境
+    apiUrl: 'http://47.83.207.5/api', // 测试环境
   },
   pre: {
-    apiUrl: 'http://47.107.251.45/api', // 预发环境
+    apiUrl: 'http://47.83.207.5/api', // 预发环境
   },
   prod: {
-    apiUrl: 'http://47.107.251.45/api', // 生产环境
+    apiUrl: 'http://47.83.207.5/api', // 生产环境
   },
 };
 

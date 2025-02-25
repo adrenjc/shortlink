@@ -9,7 +9,7 @@ const { REACT_APP_ENV = 'dev' } = process.env;
 
 export default defineConfig({
   define: {
-    API_URL: 'http://47.107.251.45:3000/api', // API地址
+    API_URL: 'http://47.83.207.5:3000/api', // API地址
     NAME: 'prod',
   },
 
