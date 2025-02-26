@@ -74,9 +74,16 @@ export default [
     name: '短链管理',
     icon: 'LinkOutlined',
     component: '@/pages/ShortLink',
+    access: 'canAdmin',
     // access: 'canUser', // 权限控制
   },
-
+  {
+    path: '/user-list',
+    name: '用户列表',
+    icon: 'UserOutlined',
+    component: './UserManagement/UserList',
+    access: 'canAdmin', // 仅限管理员访问
+  },
   {
     path: '/',
     redirect: '/chat',
