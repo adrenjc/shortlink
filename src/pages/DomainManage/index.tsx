@@ -186,21 +186,71 @@ export default () => {
         onOk={() => currentDomain && handleVerify(currentDomain.domain)}
         confirmLoading={loading}
         okText="验证"
+        width={600}
       >
         <Typography>
-          <Paragraph>请在您的域名解析服务商处添加以下 TXT 记录：</Paragraph>
           <Paragraph>
-            <strong>主机记录：</strong> @
+            <strong>第一步：添加 A 记录（必需）</strong>
           </Paragraph>
+          <Paragraph>请在您的域名解析服务商处添加以下 A 记录：</Paragraph>
           <Paragraph>
-            <strong>记录类型：</strong> TXT
+            <ul>
+              <li>
+                <strong>主机记录：</strong> @
+              </li>
+              <li>
+                <strong>记录类型：</strong> A
+              </li>
+              <li>
+                <strong>记录值：</strong>
+                <Paragraph copyable>47.83.207.5</Paragraph>
+              </li>
+              <li>
+                <strong>TTL：</strong> 600
+              </li>
+            </ul>
           </Paragraph>
+
           <Paragraph>
-            <strong>记录值：</strong>
-            <Paragraph copyable>{currentDomain?.verificationCode}</Paragraph>
+            <strong>第二步：添加 TXT 记录（验证所有权）</strong>
           </Paragraph>
+          <Paragraph>在相同的域名解析页面添加以下 TXT 记录：</Paragraph>
+          <Paragraph>
+            <ul>
+              <li>
+                <strong>主机记录：</strong> @
+              </li>
+              <li>
+                <strong>记录类型：</strong> TXT
+              </li>
+              <li>
+                <strong>记录值：</strong>
+                <Paragraph copyable>{currentDomain?.verificationCode}</Paragraph>
+              </li>
+              <li>
+                <strong>TTL：</strong> 600
+              </li>
+            </ul>
+          </Paragraph>
+
           <Paragraph type="secondary">
-            {`添加完成后点击"验证"按钮进行验证。DNS 解析生效可能需要几分钟到几小时不等。`}
+            注意事项：
+            <ul>
+              <li>两条记录都必须添加才能完成验证</li>
+              <li>A 记录用于将域名指向我们的服务器</li>
+              <li>TXT 记录用于验证域名所有权</li>
+              <li>DNS 解析生效可能需要几分钟到几小时不等</li>
+              <li>如果验证失败，请确保两条记录都已正确添加并等待解析生效</li>
+            </ul>
+          </Paragraph>
+
+          <Paragraph type="secondary">
+            常见问题：
+            <ul>
+              <li>验证失败：请检查记录是否正确添加，等待 DNS 生效后重试</li>
+              <li>无法访问：请确保 A 记录已正确设置并生效</li>
+              <li>{`配置后仍显示未验证：请点击"验证"按钮进行验证`}</li>
+            </ul>
           </Paragraph>
         </Typography>
       </Modal>
