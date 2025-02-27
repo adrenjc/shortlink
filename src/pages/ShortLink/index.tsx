@@ -1,8 +1,9 @@
+import { fetchDomains } from '@/services/domain/domain';
 import { fetchLinks } from '@/services/shortUrl/shorturl';
 import { PlusOutlined } from '@ant-design/icons';
 import { ActionType, ProColumns, ProTable } from '@ant-design/pro-components';
-import { Button, Form, Input, Modal, message } from 'antd';
-import { useRef, useState } from 'react';
+import { Button, Form, Input, Modal, Select, message } from 'antd';
+import { useEffect, useRef, useState } from 'react';
 import { useModel } from 'umi';
 
 type LinkItem = {
@@ -10,7 +11,15 @@ type LinkItem = {
   longUrl: string;
   shortKey: string;
   shortUrl: string;
+  customDomain: string | null;
   clicks: number;
+  createdAt: string;
+};
+
+type DomainItem = {
+  _id: string;
+  domain: string;
+  verified: boolean;
   createdAt: string;
 };
 
@@ -20,13 +29,39 @@ export default () => {
   const [modalVisible, setModalVisible] = useState(false);
   const { addLink, deleteLink } = useModel('shortLinks');
   const [currentItem, setCurrentItem] = useState<LinkItem | null>(null);
+  const [domains, setDomains] = useState<DomainItem[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // 获取域名列表
+  const loadDomains = async () => {
+    try {
+      const res = await fetchDomains();
+      if (res.success) {
+        setDomains(res.data);
+      }
+    } catch (error) {
+      console.error('获取域名列表失败:', error);
+      message.error('获取域名列表失败');
+    }
+  };
+
+  // 组件加载时获取域名列表
+  useEffect(() => {
+    loadDomains();
+  }, []);
 
   const handleSubmit = async (values: any) => {
-    console.log(values);
-    await addLink(values.longUrl); // 使用 createShortLink 创建短链接
-
-    setModalVisible(false);
-    actionRef.current?.reload();
+    setLoading(true);
+    try {
+      await addLink(values);
+      message.success('创建成功');
+      setModalVisible(false);
+      actionRef.current?.reload();
+    } catch (error) {
+      message.error('创建失败');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const columns: ProColumns<LinkItem>[] = [
@@ -49,21 +84,42 @@ export default () => {
         </a>
       ),
     },
-    { title: '原始链接', dataIndex: 'longUrl', ellipsis: true, search: false },
+    {
+      title: '原始链接',
+      dataIndex: 'longUrl',
+      ellipsis: true,
+      search: false,
+    },
+    {
+      title: '自定义域名',
+      dataIndex: 'customDomain',
+      search: false,
+      render: (domain) => domain || '默认域名',
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      valueType: 'dateTime',
+      search: false,
+    },
     {
       title: '操作',
       valueType: 'option',
       render: (_, record) => [
         <a
           key="delete"
-          onClick={async () => {
-            // 添加确认弹窗
+          onClick={() => {
             Modal.confirm({
               title: '确认删除',
               content: '您确定要删除这个短链吗？',
               onOk: async () => {
-                await deleteLink(record._id); // 使用 deleteLink 删除短链接
-                actionRef.current?.reload();
+                try {
+                  await deleteLink(record._id);
+                  message.success('删除成功');
+                  actionRef.current?.reload();
+                } catch (error) {
+                  message.error('删除失败');
+                }
               },
             });
           }}
@@ -80,8 +136,7 @@ export default () => {
         columns={columns}
         actionRef={actionRef}
         search={false}
-        // dataSource={links}
-        rowKey="id"
+        rowKey="_id"
         request={async (params = {}) => {
           const response = await fetchLinks(params);
           return {
@@ -114,10 +169,28 @@ export default () => {
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         onOk={() => form.submit()}
+        confirmLoading={loading}
       >
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Form.Item label="原始链接" name="longUrl" rules={[{ required: true, type: 'url' }]}>
+          <Form.Item
+            label="原始链接"
+            name="longUrl"
+            rules={[{ required: true, type: 'url', message: '请输入有效的URL' }]}
+          >
             <Input placeholder="请输入原始链接" />
+          </Form.Item>
+
+          <Form.Item label="自定义域名" name="customDomain" extra="如不选择则使用默认域名">
+            <Select
+              allowClear
+              placeholder="选择域名"
+              options={domains
+                .filter((d) => d.verified)
+                .map((d) => ({
+                  label: d.domain,
+                  value: d.domain,
+                }))}
+            />
           </Form.Item>
         </Form>
       </Modal>

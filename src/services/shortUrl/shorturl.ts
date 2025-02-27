@@ -2,9 +2,12 @@
 import { apiRequest } from '@/services/index'; // 引入封装的请求方法
 
 // 创建短链接
-export const createShortLink = async (longUrl: string): Promise<any> => {
+export const createShortLink = async (data: {
+  longUrl: string;
+  customDomain?: string;
+}): Promise<any> => {
   try {
-    const response = await apiRequest.post(`/links`, { longUrl });
+    const response = await apiRequest.post('/links', data); // 直接传递整个 data 对象
     return response.data;
   } catch (error) {
     console.error('创建短链接错误:', error);

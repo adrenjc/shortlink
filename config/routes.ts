@@ -78,6 +78,12 @@ export default [
     // access: 'canUser', // 权限控制
   },
   {
+    path: '/domain',
+    name: '域名管理',
+    icon: 'GlobalOutlined',
+    component: './DomainManage',
+  },
+  {
     path: '/user-list',
     name: '用户列表',
     icon: 'UserOutlined',
