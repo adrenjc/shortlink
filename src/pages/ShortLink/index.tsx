@@ -54,7 +54,6 @@ export default () => {
     setLoading(true);
     try {
       await addLink(values);
-      message.success('创建成功');
       setModalVisible(false);
       actionRef.current?.reload();
     } catch (error) {
@@ -94,7 +93,12 @@ export default () => {
       title: '自定义域名',
       dataIndex: 'customDomain',
       search: false,
-      render: (domain) => domain || '默认域名',
+      render: (domain) => {
+        if (domain === window.location.host) {
+          return '-';
+        }
+        return domain || '-';
+      },
     },
     {
       title: '创建时间',
@@ -115,7 +119,6 @@ export default () => {
               onOk: async () => {
                 try {
                   await deleteLink(record._id);
-                  message.success('删除成功');
                   actionRef.current?.reload();
                 } catch (error) {
                   message.error('删除失败');
