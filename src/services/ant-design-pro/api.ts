@@ -38,16 +38,16 @@ export async function login(body: API.LoginParams) {
 }
 
 /** 获取所有用户 GET /api/users */
-export async function getAllUsers(params: { page?: number; pageSize?: number } = {}) {
+export async function getAllUsers(params: { page?: number; pageSize?: number }) {
   try {
-    const response = await apiRequest.get(`/users`, { params }); // 将分页参数传递给后端
-    return {
-      data: response.data.data, // 用户数据
-      total: response.data.total, // 总数
-    }; // 返回符合 ProTable 格式的数据
+    const response = await apiRequest.get('/users', {
+      page: params.page,
+      pageSize: params.pageSize,
+    });
+    return response.data;
   } catch (error) {
     console.error('获取用户列表失败:', error);
-    throw error; // 抛出错误以便调用者处理
+    throw error;
   }
 }
 

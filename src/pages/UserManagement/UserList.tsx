@@ -19,17 +19,31 @@ const UserList: React.FC = () => {
     return <div>无权限访问此页面</div>;
   }
 
-  const fetchUsers = async (params: { current: number; pageSize: number }) => {
+  const fetchUsers = async (params: { current?: number; pageSize?: number }) => {
     setLoading(true);
     try {
-      const response = await getAllUsers({ page: params.current, pageSize: params.pageSize }); // 传递分页参数
+      const response = await getAllUsers({
+        page: params.current, // 将 current 映射为 page
+        pageSize: params.pageSize,
+      });
+
       return {
-        data: response.data, // 用户数据
-        total: response.total, // 总数
+        data: response.data,
+        success: response.success,
+        total: response.total,
+        current: response.page,
+        pageSize: response.pageSize,
       };
     } catch (error) {
+      console.error('Error fetching users:', error);
       message.error('获取用户列表失败');
-      return { data: [] }; // 返回空数据
+      return {
+        data: [],
+        success: false,
+        total: 0,
+        current: params.current,
+        pageSize: params.pageSize,
+      };
     } finally {
       setLoading(false);
     }
@@ -93,12 +107,16 @@ const UserList: React.FC = () => {
     <div>
       <ProTable
         columns={columns}
-        request={fetchUsers} // 使用 request 属性来获取数据
+        request={fetchUsers}
         loading={loading}
         rowKey="_id"
-        pagination={{ pageSize: 10 }} // 分页设置
-        search={false} // 关闭搜索框
-        actionRef={actionRef} // 传递 ref
+        pagination={{
+          defaultPageSize: 10,
+          showSizeChanger: true,
+          showQuickJumper: true, // 添加快速跳转
+        }}
+        search={false}
+        actionRef={actionRef}
         toolBarRender={() => [
           <Button
             key="add"
