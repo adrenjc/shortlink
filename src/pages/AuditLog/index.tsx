@@ -32,17 +32,24 @@ const AuditLogList: React.FC = () => {
     {
       title: '操作时间',
       dataIndex: 'createdAt',
-      key: 'createdAt',
-      valueType: 'dateTime',
-      sorter: {
-        compare: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-        multiple: 1,
+      valueType: 'dateRange',
+      search: {
+        transform: (value) => {
+          return {
+            startDate: value?.[0],
+            endDate: value?.[1],
+          };
+        },
       },
+      render: (_, record) => (record.createdAt ? new Date(record.createdAt).toLocaleString() : '-'),
       width: 180,
     },
     {
       title: '用户',
-      dataIndex: ['userId', 'username'],
+      dataIndex: 'userId',
+      fieldProps: {
+        placeholder: '输入用户名搜索',
+      },
       render: (_, record) => (
         <span>
           {record.userId.nickname || record.userId.username}
@@ -97,6 +104,7 @@ const AuditLogList: React.FC = () => {
       dataIndex: 'userAgent',
       ellipsis: true,
       width: 200,
+      search: false,
     },
   ];
 
@@ -110,23 +118,28 @@ const AuditLogList: React.FC = () => {
           labelWidth: 120,
         }}
         request={async (params) => {
-          const { current, pageSize, sorter, ...restParams } = params;
+          // 处理查询参数
+          const { current, pageSize, createdAt, userId, action, resourceType, ipAddress, ...rest } =
+            params;
 
-          // 处理排序参数
-          const sortQuery =
-            sorter && typeof sorter === 'object'
-              ? {
-                  sort: 'createdAt',
-                  order: (sorter as any).order === 'ascend' ? 'ascend' : 'descend',
-                }
-              : {};
-
-          const response = await getAuditLogs({
-            page: current,
+          // 构建查询参数
+          const queryParams = {
+            current,
             pageSize,
-            ...sortQuery,
-            ...restParams,
-          });
+            // 如果有时间范围，则添加开始和结束时间
+            ...(createdAt && {
+              startDate: createdAt[0],
+              endDate: createdAt[1],
+            }),
+            // 其他查询条件
+            ...(userId && { userId: userId }),
+            ...(action && { action }),
+            ...(resourceType && { resourceType }),
+            ...(ipAddress && { ipAddress }),
+            ...rest,
+          };
+
+          const response = await getAuditLogs(queryParams);
 
           return {
             data: response.data,
