@@ -74,7 +74,7 @@ export default [
     name: '短链管理',
     icon: 'LinkOutlined',
     component: '@/pages/ShortLink',
-    access: 'canAdmin',
+    // access: 'canAdmin',
     // access: 'canUser', // 权限控制
   },
   {
@@ -89,6 +89,13 @@ export default [
     icon: 'UserOutlined',
     component: './UserManagement/UserList',
     access: 'canAdmin', // 仅限管理员访问
+  },
+  {
+    path: '/audit-log',
+    name: '审计日志',
+    icon: 'AuditOutlined',
+    component: './AuditLog',
+    access: 'canAdmin', // 确保只有管理员可以访问
   },
   {
     path: '/',
