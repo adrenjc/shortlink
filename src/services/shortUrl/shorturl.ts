@@ -36,5 +36,10 @@ export const deleteLink = async (id: string): Promise<void> => {
   }
 };
 
+// 添加更新短链接的服务
+export async function updateLink(id: string, data: { longUrl: string }) {
+  return apiRequest.put(`/links/${id}`, data);
+}
+
 // 示例：设置请求头
 // setRequestHeader('Authorization', 'Bearer your_token'); // 根据需要设置请求头

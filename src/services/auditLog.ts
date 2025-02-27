@@ -12,7 +12,7 @@ export interface AuditLogParams {
 }
 
 // 审计日志数据接口
-export interface AuditLog {
+export type AuditLog = {
   _id: string;
   userId: {
     _id: string;
@@ -23,11 +23,18 @@ export interface AuditLog {
   resourceType: string;
   resourceId: string;
   description: string;
-  metadata: Record<string, any>;
   ipAddress: string;
   userAgent: string;
   createdAt: string;
-}
+  metadata: Record<string, any>;
+  status: 'SUCCESS' | 'FAILURE';
+  errorMessage?: string;
+  deviceInfo?: {
+    browser: string;
+    os: string;
+    device: string;
+  };
+};
 
 // 获取审计日志列表
 export async function getAuditLogs(params: AuditLogParams) {

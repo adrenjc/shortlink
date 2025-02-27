@@ -27,7 +27,7 @@ export default () => {
   const [form] = Form.useForm();
   const actionRef = useRef<ActionType>();
   const [modalVisible, setModalVisible] = useState(false);
-  const { addLink, deleteLink } = useModel('shortLinks');
+  const { addLink, deleteLink, updateLink } = useModel('shortLinks');
   const [currentItem, setCurrentItem] = useState<LinkItem | null>(null);
   const [domains, setDomains] = useState<DomainItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -53,11 +53,21 @@ export default () => {
   const handleSubmit = async (values: any) => {
     setLoading(true);
     try {
-      await addLink(values);
+      if (currentItem) {
+        // 编辑模式
+        await updateLink({
+          id: currentItem._id,
+          data: { longUrl: values.longUrl },
+        });
+        message.success('更新成功');
+      } else {
+        // 新建模式
+        await addLink(values);
+      }
       setModalVisible(false);
       actionRef.current?.reload();
     } catch (error) {
-      message.error('创建失败');
+      message.error(currentItem ? '更新失败' : '创建失败');
     } finally {
       setLoading(false);
     }
@@ -111,6 +121,19 @@ export default () => {
       valueType: 'option',
       render: (_, record) => [
         <a
+          key="edit"
+          onClick={() => {
+            setCurrentItem(record);
+            form.setFieldsValue({
+              longUrl: record.longUrl,
+              customDomain: record.customDomain,
+            });
+            setModalVisible(true);
+          }}
+        >
+          编辑
+        </a>,
+        <a
           key="delete"
           onClick={() => {
             Modal.confirm({
@@ -120,6 +143,7 @@ export default () => {
                 try {
                   await deleteLink(record._id);
                   actionRef.current?.reload();
+                  message.success('删除成功');
                 } catch (error) {
                   message.error('删除失败');
                 }
@@ -170,7 +194,11 @@ export default () => {
       <Modal
         title={currentItem ? '编辑短链' : '新建短链'}
         open={modalVisible}
-        onCancel={() => setModalVisible(false)}
+        onCancel={() => {
+          setModalVisible(false);
+          setCurrentItem(null);
+          form.resetFields();
+        }}
         onOk={() => form.submit()}
         confirmLoading={loading}
       >
