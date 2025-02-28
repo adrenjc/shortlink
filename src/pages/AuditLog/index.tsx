@@ -43,30 +43,44 @@ const AuditLogList: React.FC = () => {
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
 
   // 格式化日期范围
-  const formatDateRange = (dates: string[]) => {
-    if (!dates?.length) return '';
-    return `${new Date(dates[0]).toLocaleDateString()} 至 ${new Date(
-      dates[1],
-    ).toLocaleDateString()}`;
+  const formatDateRange = (dates: string[] | undefined) => {
+    if (!dates?.length || dates.length < 2) return '未设置';
+    try {
+      return `${new Date(dates[0]).toLocaleDateString()} 至 ${new Date(
+        dates[1],
+      ).toLocaleDateString()}`;
+    } catch (error) {
+      console.error('日期格式化错误:', error);
+      return '日期格式错误';
+    }
   };
 
   // 获取筛选条件的显示文本
   const getFilterText = (key: string, value: any) => {
-    switch (key) {
-      case 'createdAt':
-        return `时间范围: ${formatDateRange(value)}`;
-      case 'status':
-        return `状态: ${value === 'SUCCESS' ? '成功' : '失败'}`;
-      case 'action':
-        return `操作类型: ${actionMap[value as keyof typeof actionMap]?.text || value}`;
-      case 'resourceType':
-        return `资源类型: ${resourceTypeMap[value as keyof typeof resourceTypeMap]?.text || value}`;
-      case 'userId':
-        return `用户: ${value}`;
-      case 'ipAddress':
-        return `IP地址: ${value}`;
-      default:
-        return `${key}: ${value}`;
+    if (value === undefined || value === null) return '未设置';
+
+    try {
+      switch (key) {
+        case 'createdAt':
+          return `时间范围: ${formatDateRange(value)}`;
+        case 'status':
+          return `状态: ${value === 'SUCCESS' ? '成功' : value === 'FAILURE' ? '失败' : '未知'}`;
+        case 'action':
+          return `操作类型: ${actionMap[value as keyof typeof actionMap]?.text || '未知操作'}`;
+        case 'resourceType':
+          return `资源类型: ${
+            resourceTypeMap[value as keyof typeof resourceTypeMap]?.text || '未知类型'
+          }`;
+        case 'userId':
+          return `用户: ${value || '未知用户'}`;
+        case 'ipAddress':
+          return `IP地址: ${value || '未知IP'}`;
+        default:
+          return `${key}: ${value || '未知'}`;
+      }
+    } catch (error) {
+      console.error('获取筛选文本错误:', error);
+      return '数据错误';
     }
   };
 
@@ -92,14 +106,26 @@ const AuditLogList: React.FC = () => {
       fieldProps: {
         placeholder: '输入用户名搜索',
       },
-      render: (_, record) => (
-        <span>
-          {record.userId.nickname || record.userId.username}
-          {record.userId.nickname && (
-            <span style={{ color: '#999', marginLeft: 8 }}>({record.userId.username})</span>
-          )}
-        </span>
-      ),
+      render: (_, record) => {
+        try {
+          if (!record?.userId) return <span className="text-gray-400">未知用户</span>;
+
+          const nickname = record.userId.nickname;
+          const username = record.userId.username;
+
+          if (!nickname && !username) return <span className="text-gray-400">未知用户</span>;
+
+          return (
+            <span>
+              {nickname || username}
+              {nickname && username && <span className="text-gray-400 ml-2">({username})</span>}
+            </span>
+          );
+        } catch (error) {
+          console.error('用户信息渲染错误:', error);
+          return <span className="text-red-500">数据错误</span>;
+        }
+      },
     },
     {
       title: (
@@ -168,24 +194,27 @@ const AuditLogList: React.FC = () => {
       width: 200,
       search: false,
       render: (_, record) => {
-        if (!record.deviceInfo) return '-';
+        try {
+          if (!record.deviceInfo) return <span className="text-gray-400">-</span>;
 
-        // 截取设备信息，超过长度显示省略号
-        const maxLength = 20;
-        const browser = record.deviceInfo.browser || '';
-        const os = record.deviceInfo.os || '';
+          const maxLength = 20;
+          const browser = record.deviceInfo.browser || '未知浏览器';
+          const os = record.deviceInfo.os || '未知系统';
+          const device = record.deviceInfo.device || '未知设备';
 
-        const displayText = `${browser} / ${os}`;
-        const shortText =
-          displayText.length > maxLength ? `${displayText.slice(0, maxLength)}...` : displayText;
+          const displayText = `${browser} / ${os}`;
+          const shortText =
+            displayText.length > maxLength ? `${displayText.slice(0, maxLength)}...` : displayText;
 
-        return (
-          <Tooltip
-            title={`浏览器: ${record.deviceInfo.browser}\n系统: ${record.deviceInfo.os}\n设备: ${record.deviceInfo.device}`}
-          >
-            <span>{shortText}</span>
-          </Tooltip>
-        );
+          return (
+            <Tooltip title={`浏览器: ${browser}\n系统: ${os}\n设备: ${device}`}>
+              <span>{shortText}</span>
+            </Tooltip>
+          );
+        } catch (error) {
+          console.error('设备信息渲染错误:', error);
+          return <span className="text-red-500">设备信息错误</span>;
+        }
       },
     },
   ];
@@ -204,11 +233,16 @@ const AuditLogList: React.FC = () => {
                 <span>当前筛选条件:</span>
                 {Object.entries(activeFilters).map(([key, value]) => {
                   if (!value) return null;
-                  return (
-                    <Tag key={key} color="blue" style={{ padding: '4px 8px' }}>
-                      {getFilterText(key, value)}
-                    </Tag>
-                  );
+                  try {
+                    return (
+                      <Tag key={key} color="blue" style={{ padding: '4px 8px' }}>
+                        {getFilterText(key, value)}
+                      </Tag>
+                    );
+                  } catch (error) {
+                    console.error('筛选条件渲染错误:', error);
+                    return null;
+                  }
                 })}
               </Space>
             </Space>
@@ -224,61 +258,78 @@ const AuditLogList: React.FC = () => {
           labelWidth: 120,
         }}
         request={async (params) => {
-          // 更新筛选条件状态
-          const {
-            createdAt,
-            status,
-            action,
-            resourceType,
-            userId,
-            ipAddress,
-            current,
-            pageSize,
-            ...rest
-          } = params;
+          try {
+            // 更新筛选条件状态
+            const {
+              createdAt,
+              status,
+              action,
+              resourceType,
+              userId,
+              ipAddress,
+              current,
+              pageSize,
+              ...rest
+            } = params;
 
-          const filters = {
-            createdAt,
-            status,
-            action,
-            resourceType,
-            userId,
-            ipAddress,
-          };
+            const filters = {
+              createdAt,
+              status,
+              action,
+              resourceType,
+              userId,
+              ipAddress,
+            };
 
-          // 过滤掉空值
-          const activeFilters = Object.fromEntries(
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            Object.entries(filters).filter(([_, v]) => v !== undefined && v !== null && v !== ''),
-          );
+            // 过滤掉空值
+            const activeFilters = Object.fromEntries(
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              Object.entries(filters).filter(([_, v]) => v !== undefined && v !== null && v !== ''),
+            );
 
-          setActiveFilters(activeFilters);
+            setActiveFilters(activeFilters);
 
-          // 构建查询参数
-          const queryParams = {
-            current,
-            pageSize,
-            // 如果有时间范围，则添加开始和结束时间
-            ...(createdAt && {
-              startDate: createdAt[0],
-              endDate: createdAt[1],
-            }),
-            // 其他查询条件
-            ...(userId && { userId }),
-            ...(action && { action }),
-            ...(resourceType && { resourceType }),
-            ...(ipAddress && { ipAddress }),
-            ...(status && { status }),
-            ...rest,
-          };
+            // 构建查询参数
+            const queryParams = {
+              current,
+              pageSize,
+              // 如果有时间范围，则添加开始和结束时间
+              ...(createdAt && {
+                startDate: createdAt[0],
+                endDate: createdAt[1],
+              }),
+              // 其他查询条件
+              ...(userId && { userId }),
+              ...(action && { action }),
+              ...(resourceType && { resourceType }),
+              ...(ipAddress && { ipAddress }),
+              ...(status && { status }),
+              ...rest,
+            };
 
-          const response = await getAuditLogs(queryParams);
+            const response = await getAuditLogs(queryParams);
 
-          return {
-            data: response.data,
-            success: response.success,
-            total: response.total,
-          };
+            if (!response || !response.data) {
+              return {
+                data: [],
+                success: false,
+                total: 0,
+              };
+            }
+
+            return {
+              data: response.data,
+              success: response.success ?? false,
+              total: response.total ?? 0,
+            };
+          } catch (error) {
+            console.error('获取审计日志错误:', error);
+            return {
+              data: [],
+              success: false,
+              total: 0,
+            };
+          }
         }}
         columns={columns}
         pagination={{
