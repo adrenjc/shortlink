@@ -1,4 +1,10 @@
-import { addDomain, deleteDomain, fetchDomains, verifyDomain } from '@/services/domain/domain';
+import {
+  addDomain,
+  deleteDomain,
+  fetchDomains,
+  recheckDomain,
+  verifyDomain,
+} from '@/services/domain/domain';
 import { PlusOutlined } from '@ant-design/icons';
 import { ActionType, ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Form, Input, Modal, Tag, Typography, message } from 'antd';
@@ -95,19 +101,58 @@ export default () => {
             验证
           </a>
         ),
+        record.verified && (
+          <a
+            key="recheck"
+            onClick={async () => {
+              try {
+                const result = await recheckDomain(record.domain);
+                if (result.success) {
+                  message.info(result.message);
+                  actionRef.current?.reload();
+                } else {
+                  message.info(result.message);
+                }
+              } catch (error: any) {
+                message.error('域名验证检查失败');
+              }
+            }}
+          >
+            重新验证
+          </a>
+        ),
         <a
           key="delete"
           onClick={() => {
             Modal.confirm({
               title: '确认删除',
-              content: '删除域名将同时删除使用该域名的所有短链接，是否继续？',
+              content: (
+                <div>
+                  <p>删除域名将同时：</p>
+                  <ul>
+                    <li>删除该域名的所有配置信息</li>
+                    <li>删除使用该域名的所有短链接</li>
+                    <li>相关短链接将无法访问</li>
+                  </ul>
+                  <p>此操作不可恢复，是否继续？</p>
+                </div>
+              ),
+              okText: '确认删除',
+              okType: 'danger',
+              cancelText: '取消',
               onOk: async () => {
                 try {
-                  await deleteDomain(record.domain);
-                  message.success('删除成功');
-                  actionRef.current?.reload();
-                } catch (error) {
-                  message.error('删除失败');
+                  const result = await deleteDomain(record.domain);
+                  if (result.success) {
+                    message.success(result.message || '域名及相关短链删除成功');
+                    if (actionRef.current) {
+                      actionRef.current.reload();
+                    }
+                  } else {
+                    message.error(result.message || '删除失败');
+                  }
+                } catch (error: any) {
+                  message.error(error.message || '删除失败');
                 }
               },
             });

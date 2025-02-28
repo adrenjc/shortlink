@@ -34,12 +34,25 @@ export const verifyDomain = async (domain: string) => {
 };
 
 // 删除域名
-export const deleteDomain = async (domain: string) => {
+export async function deleteDomain(domain: string) {
   try {
     const response = await apiRequest.delete(`/domains/${domain}`);
+
+    // 直接返回后端的响应数据，因为后端返回的格式是 { success: true, message: string, data: any }
     return response.data;
   } catch (error) {
     console.error('删除域名失败:', error);
+    throw error;
+  }
+}
+
+// 重新验证域名
+export const recheckDomain = async (domain: string) => {
+  try {
+    const response = await apiRequest.post(`/domains/${domain}/recheck`);
+    return response.data;
+  } catch (error) {
+    console.error('域名重新验证失败:', error);
     throw error;
   }
 };

@@ -167,18 +167,26 @@ const AuditLogList: React.FC = () => {
       dataIndex: 'deviceInfo',
       width: 200,
       search: false,
-      render: (_, record) =>
-        record.deviceInfo ? (
+      render: (_, record) => {
+        if (!record.deviceInfo) return '-';
+
+        // 截取设备信息，超过长度显示省略号
+        const maxLength = 20;
+        const browser = record.deviceInfo.browser || '';
+        const os = record.deviceInfo.os || '';
+
+        const displayText = `${browser} / ${os}`;
+        const shortText =
+          displayText.length > maxLength ? `${displayText.slice(0, maxLength)}...` : displayText;
+
+        return (
           <Tooltip
             title={`浏览器: ${record.deviceInfo.browser}\n系统: ${record.deviceInfo.os}\n设备: ${record.deviceInfo.device}`}
           >
-            <span>
-              {record.deviceInfo.browser} / {record.deviceInfo.os}
-            </span>
+            <span>{shortText}</span>
           </Tooltip>
-        ) : (
-          '-'
-        ),
+        );
+      },
     },
   ];
 

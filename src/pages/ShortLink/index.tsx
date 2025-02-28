@@ -63,6 +63,7 @@ export default () => {
       } else {
         // 新建模式
         await addLink(values);
+        message.success('创建成功');
       }
       setModalVisible(false);
       actionRef.current?.reload();
