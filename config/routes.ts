@@ -88,7 +88,7 @@ export default [
     name: '用户列表',
     icon: 'UserOutlined',
     component: './UserManagement/UserList',
-    access: 'canAdmin', // 仅限管理员访问
+    access: 'canAdmin', // 恢复权限控制
   },
   {
     path: '/audit-log',
@@ -96,6 +96,13 @@ export default [
     icon: 'AuditOutlined',
     component: './AuditLog',
     access: 'canAdmin', // 确保只有管理员可以访问
+  },
+  {
+    path: '/role',
+    name: '角色管理',
+    icon: 'TeamOutlined',
+    component: './RoleManagement',
+    access: 'canAdmin', // 恢复权限控制
   },
   {
     path: '/',

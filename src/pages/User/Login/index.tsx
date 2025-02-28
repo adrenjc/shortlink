@@ -147,6 +147,7 @@ const Login: React.FC = () => {
 
   const fetchUserInfo = async () => {
     const userInfo = await currentUser();
+    console.log(userInfo, '看一下用户信息');
     if (userInfo) {
       flushSync(() => {
         setInitialState((s) => ({

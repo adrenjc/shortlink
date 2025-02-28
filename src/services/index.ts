@@ -61,8 +61,20 @@ const apiClient = axios.create({
 // 添加请求拦截器
 apiClient.interceptors.request.use(
   (config: any) => {
-    // 在发送请求之前做些什么
-    config.headers['x-auth-token'] = localStorage.getItem('x-auth-token') || '';
+    // 从 localStorage 获取 token
+    const token = localStorage.getItem('x-auth-token');
+    if (token) {
+      config.headers['x-auth-token'] = token;
+    }
+
+    // 处理 GET 请求的参数
+    if (config.method === 'get' && config.params) {
+      // 确保参数正确传递，不被 JSON.stringify
+      config.params = {
+        ...config.params,
+      };
+    }
+
     return config;
   },
   (error) => {

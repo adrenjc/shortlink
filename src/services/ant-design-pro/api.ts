@@ -38,12 +38,16 @@ export async function login(body: API.LoginParams) {
 }
 
 /** 获取所有用户 GET /api/users */
-export async function getAllUsers(params: { page?: number; pageSize?: number }) {
+export async function getAllUsers(params: {
+  page?: number;
+  pageSize?: number;
+  username?: string;
+  email?: string;
+  status?: number;
+  [key: string]: any;
+}) {
   try {
-    const response = await apiRequest.get('/users', {
-      page: params.page,
-      pageSize: params.pageSize,
-    });
+    const response = await apiRequest.get('/users', params);
     return response.data;
   } catch (error) {
     console.error('获取用户列表失败:', error);
@@ -52,7 +56,10 @@ export async function getAllUsers(params: { page?: number; pageSize?: number }) 
 }
 
 /** 更新用户信息 PUT /api/users/:id */
-export async function updateUser(data: { username: string; password: string }, id: string) {
+export async function updateUser(
+  data: { username: string; password: string; roles: string[] },
+  id: string,
+) {
   try {
     const response = await apiRequest.put(`/users/${id}`, data);
     return response.data; // 返回更新后的用户数据
@@ -63,7 +70,7 @@ export async function updateUser(data: { username: string; password: string }, i
 }
 
 /** 新增用户 POST /api/users */
-export async function createUser(data: { username: string; password: string }) {
+export async function createUser(data: { username: string; password: string; roles: string[] }) {
   try {
     const response = await apiRequest.post(`/register`, data); // 发送新增用户请求
     return response.data; // 返回新增的用户数据
