@@ -68,5 +68,7 @@ export default function access(initialState: { currentUser?: API.CurrentUser } |
       if (currentUser.username === 'admin') return true;
       return userPermissions.has(PERMISSION_CODES.ROLE_VIEW);
     },
+
+    canViewAllDomains: currentUser?.permissions?.includes('domain:view'),
   };
 }

@@ -57,25 +57,23 @@ export default [
   //   path: '/table',
   //   component: './Table',
   // },
-  {
-    path: '/chat',
-    name: 'AI对话',
-    icon: 'MessageOutlined',
-    component: './Chat',
-    routes: [
-      {
-        path: '/chat',
-        component: './Chat/index',
-      },
-    ],
-  },
+  // {
+  //   path: '/chat',
+  //   name: 'AI对话',
+  //   icon: 'MessageOutlined',
+  //   component: './Chat',
+  //   routes: [
+  //     {
+  //       path: '/chat',
+  //       component: './Chat/index',
+  //     },
+  //   ],
+  // },
   {
     path: '/short-link',
     name: '短链管理',
     icon: 'LinkOutlined',
     component: '@/pages/ShortLink',
-    // access: 'canAdmin',
-    // access: 'canUser', // 权限控制
   },
   {
     path: '/domain',
@@ -107,7 +105,7 @@ export default [
   },
   {
     path: '/',
-    redirect: '/chat',
+    redirect: '/short-link',
   },
   {
     path: '*',

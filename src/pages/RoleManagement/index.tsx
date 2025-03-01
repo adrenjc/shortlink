@@ -1,3 +1,5 @@
+import { PERMISSION_CODES } from '@/constants/permissions';
+import { usePermission } from '@/hooks/usePermission';
 import { createRole, deleteRole, getPermissions, getRoles, updateRole } from '@/services/role';
 import type { Permission, Role } from '@/services/role/typings';
 import { DeleteOutlined, EditOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
@@ -5,7 +7,6 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Form, Input, Modal, Select, Space, Tooltip, message } from 'antd';
 import { useEffect, useRef, useState } from 'react';
-import { useModel } from 'umi';
 
 const RoleManagement = () => {
   const [form] = Form.useForm();
@@ -15,36 +16,14 @@ const RoleManagement = () => {
   const [loading, setLoading] = useState(false);
   const [permissions, setPermissions] = useState<Permission[]>([]);
 
-  const { initialState } = useModel('@@initialState');
-  const { currentUser: globalCurrentUser } = initialState || {};
-
-  // 恢复权限检查
-  const hasPermission = (permission: string) => {
-    if (!globalCurrentUser?.roles) return false;
-
-    const userPermissions = new Set();
-
-    globalCurrentUser.roles.forEach((role: any) => {
-      role.permissions?.forEach((permission: any) => {
-        userPermissions.add(permission.code);
-      });
-    });
-
-    globalCurrentUser.permissions?.forEach((permission: any) => {
-      userPermissions.add(permission.code);
-    });
-
-    return userPermissions.has(permission) || globalCurrentUser.username === 'admin';
-  };
+  const { hasPermission } = usePermission();
 
   // 获取权限列表
   const fetchPermissions = async () => {
     try {
       const response = await getPermissions();
       setPermissions(response.data || []);
-    } catch (error) {
-      message.error('获取权限列表失败');
-    }
+    } catch (error) {}
   };
 
   // 在组件挂载时获取权限列表
@@ -53,7 +32,7 @@ const RoleManagement = () => {
   }, []);
 
   // 检查页面访问权限
-  if (!hasPermission('role:view')) {
+  if (!hasPermission(PERMISSION_CODES.ROLE_VIEW)) {
     return <div>无权限访问此页面</div>;
   }
 
@@ -69,15 +48,13 @@ const RoleManagement = () => {
       }
       setModalVisible(false);
       actionRef.current?.reload();
-    } catch (error: any) {
-      message.error(error.message || '操作失败');
     } finally {
       setLoading(false);
     }
   };
 
   const handleEdit = (record: Role) => {
-    if (!hasPermission('role:update')) {
+    if (!hasPermission(PERMISSION_CODES.ROLE_UPDATE)) {
       message.error('没有编辑权限');
       return;
     }
@@ -91,7 +68,7 @@ const RoleManagement = () => {
   };
 
   const handleDelete = async (record: Role) => {
-    if (!hasPermission('role:delete')) {
+    if (!hasPermission(PERMISSION_CODES.ROLE_DELETE)) {
       message.error('没有删除权限');
       return;
     }
@@ -107,9 +84,7 @@ const RoleManagement = () => {
           await deleteRole(record._id);
           message.success('角色删除成功');
           actionRef.current?.reload();
-        } catch (error: any) {
-          message.error(error.message || '删除失败');
-        }
+        } catch (error: any) {}
       },
     });
   };
@@ -191,7 +166,6 @@ const RoleManagement = () => {
               total: response.total,
             };
           } catch (error) {
-            message.error('获取角色列表失败');
             return {
               data: [],
               success: false,
@@ -212,7 +186,7 @@ const RoleManagement = () => {
             key="create"
             type="primary"
             onClick={() => {
-              if (!hasPermission('role:create')) {
+              if (!hasPermission(PERMISSION_CODES.ROLE_CREATE)) {
                 message.error('没有创建权限');
                 return;
               }

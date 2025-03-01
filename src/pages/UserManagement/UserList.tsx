@@ -34,9 +34,7 @@ const UserList: React.FC = () => {
     try {
       const response = await getRoles();
       setRoles(response.data || []);
-    } catch (error) {
-      message.error('获取角色列表失败');
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -91,9 +89,7 @@ const UserList: React.FC = () => {
       if (actionRef.current) {
         actionRef.current.reload();
       }
-    } catch (error: any) {
-      message.error(error.message || (isEditing ? '更新用户信息失败' : '新增用户失败'));
-    }
+    } catch (error: any) {}
   };
 
   const columns: ProColumns<UserType>[] = [

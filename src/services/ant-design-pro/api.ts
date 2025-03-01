@@ -81,12 +81,23 @@ export async function createUser(data: { username: string; password: string; rol
 }
 
 /** 注册接口 POST /api/register */
-export async function register(data: { username: string; password: string }) {
+export async function register(data: { username: string; password: string }): Promise<{
+  token?: string;
+  message?: string;
+}> {
   try {
     const response = await apiRequest.post('/register', data);
+    // 如果后端返回了token，我们直接返回包含token的对象
+    if (response.data.token) {
+      return {
+        token: response.data.token,
+        message: response.data.message,
+      };
+    }
     return response.data;
-  } catch (error) {
-    console.error('注册失败:', error);
+  } catch (error: any) {
+    const errorMessage = error.response?.data?.message || '注册失败，请稍后重试';
+    console.error('注册失败:', errorMessage);
     throw error;
   }
 }

@@ -1,4 +1,4 @@
-import { fetchDomains } from '@/services/domain/domain';
+import { fetchAllDomains } from '@/services/domain/domain';
 import { fetchLinks } from '@/services/shortUrl/shorturl';
 import { PlusOutlined } from '@ant-design/icons';
 import { ActionType, ProColumns, ProTable } from '@ant-design/pro-components';
@@ -35,14 +35,11 @@ export default () => {
   // 获取域名列表
   const loadDomains = async () => {
     try {
-      const res = await fetchDomains();
+      const res = await fetchAllDomains();
       if (res.success) {
         setDomains(res.data);
       }
-    } catch (error) {
-      console.error('获取域名列表失败:', error);
-      message.error('获取域名列表失败');
-    }
+    } catch (error: any) {}
   };
 
   // 组件加载时获取域名列表
@@ -67,8 +64,6 @@ export default () => {
       }
       setModalVisible(false);
       actionRef.current?.reload();
-    } catch (error) {
-      message.error(currentItem ? '更新失败' : '创建失败');
     } finally {
       setLoading(false);
     }
@@ -141,13 +136,9 @@ export default () => {
               title: '确认删除',
               content: '您确定要删除这个短链吗？',
               onOk: async () => {
-                try {
-                  await deleteLink(record._id);
-                  actionRef.current?.reload();
-                  message.success('删除成功');
-                } catch (error) {
-                  message.error('删除失败');
-                }
+                await deleteLink(record._id);
+                actionRef.current?.reload();
+                message.success('删除成功');
               },
             });
           }}
@@ -219,7 +210,7 @@ export default () => {
               options={domains
                 .filter((d) => d.verified)
                 .map((d) => ({
-                  label: d.domain,
+                  label: `${d.domain}`,
                   value: d.domain,
                 }))}
             />

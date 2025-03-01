@@ -3,7 +3,7 @@ import { apiRequest } from '@/services/index';
 // 获取域名列表
 export const fetchDomains = async () => {
   try {
-    const response = await apiRequest.get('/domains');
+    const response = await apiRequest.get('/domains/all');
     return response.data;
   } catch (error) {
     console.error('获取域名列表失败:', error);
@@ -56,6 +56,22 @@ export const recheckDomain = async (domain: string) => {
     throw error;
   }
 };
+
+/** 获取所有用户的域名列表 */
+export async function fetchAllDomains(params?: {
+  current?: number;
+  pageSize?: number;
+  domain?: string;
+  'user.username'?: string;
+}) {
+  try {
+    const response = await apiRequest.get('/domains/all', params);
+    return response.data;
+  } catch (error) {
+    console.error('获取所有域名列表失败:', error);
+    throw error;
+  }
+}
 
 // 导出类型定义
 export interface DomainResponse {

@@ -1,4 +1,4 @@
-import { currentUser, login } from '@/services/ant-design-pro/api';
+import { currentUser, login, register } from '@/services/ant-design-pro/api';
 import { Helmet, history, useModel } from '@umijs/max';
 import { message, Tabs } from 'antd';
 import { createStyles } from 'antd-style';
@@ -215,17 +215,65 @@ const Login: React.FC = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 表单验证
+    if (!registerForm.username || !registerForm.password) {
+      message.error('用户名和密码不能为空！');
+      return;
+    }
+
+    if (registerForm.username.length < 3) {
+      message.error('用户名至少需要3个字符！');
+      return;
+    }
+
+    if (registerForm.password.length < 6) {
+      message.error('密码至少需要6个字符！');
+      return;
+    }
+
     if (registerForm.password !== registerForm.confirmPassword) {
       message.error('两次输入的密码不一致！');
       return;
     }
+
     setLoading(true);
     try {
-      // TODO: 调用注册接口
-      message.success('注册成功！');
-      setActiveTab('login');
+      // 调用注册接口
+      const result = await register({
+        username: registerForm.username,
+        password: registerForm.password,
+      });
+
+      // 如果注册接口返回了token，直接保存并获取用户信息
+      if (result.token) {
+        localStorage.setItem('x-auth-token', result.token);
+        message.success('注册成功！');
+
+        // 获取用户信息
+        await fetchUserInfo();
+
+        // 跳转到首页或指定的重定向页面
+        const urlParams = new URL(window.location.href).searchParams;
+        history.push(urlParams.get('redirect') || '/');
+      } else {
+        // 如果没有返回token，切换到登录页面
+        message.success('注册成功，请登录！');
+        setActiveTab('login');
+        // 自动填充登录表单
+        setLoginForm({
+          username: registerForm.username,
+          password: registerForm.password,
+        });
+      }
+
+      // 清空注册表单
+      setRegisterForm({
+        username: '',
+        password: '',
+        confirmPassword: '',
+      });
     } catch (error: any) {
-      message.error(error.response?.data?.message || '注册失败，请重试！');
     } finally {
       setLoading(false);
     }

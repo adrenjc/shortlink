@@ -1,7 +1,9 @@
+import { PERMISSION_CODES } from '@/constants/permissions';
+import { usePermission } from '@/hooks/usePermission';
 import {
   addDomain,
   deleteDomain,
-  fetchDomains,
+  fetchAllDomains,
   recheckDomain,
   verifyDomain,
 } from '@/services/domain/domain';
@@ -9,7 +11,6 @@ import { PlusOutlined } from '@ant-design/icons';
 import { ActionType, ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Form, Input, Modal, Tag, Typography, message } from 'antd';
 import { useRef, useState } from 'react';
-
 const { Paragraph } = Typography;
 
 type DomainItem = {
@@ -18,6 +19,10 @@ type DomainItem = {
   verified: boolean;
   verificationCode: string;
   createdAt: string;
+  user: {
+    username: string;
+    email: string;
+  };
 };
 
 export default () => {
@@ -27,6 +32,8 @@ export default () => {
   const [verifyModalVisible, setVerifyModalVisible] = useState(false);
   const [currentDomain, setCurrentDomain] = useState<DomainItem | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const { hasPermission } = usePermission();
 
   const handleSubmit = async (values: { domain: string }) => {
     setLoading(true);
@@ -39,8 +46,7 @@ export default () => {
         setVerifyModalVisible(true);
         actionRef.current?.reload();
       }
-    } catch (error) {
-      message.error('域名添加失败');
+    } catch (error: any) {
     } finally {
       setLoading(false);
     }
@@ -54,11 +60,7 @@ export default () => {
         message.success('域名验证成功');
         setVerifyModalVisible(false);
         actionRef.current?.reload();
-      } else {
-        message.error(res.message || '域名验证失败');
       }
-    } catch (error) {
-      message.error('验证过程出错');
     } finally {
       setLoading(false);
     }
@@ -70,6 +72,12 @@ export default () => {
       dataIndex: 'domain',
       ellipsis: true,
     },
+    {
+      title: '所属用户',
+      dataIndex: ['user', 'username'],
+      ellipsis: true,
+    },
+
     {
       title: '验证状态',
       dataIndex: 'verified',
@@ -113,53 +121,45 @@ export default () => {
                 } else {
                   message.info(result.message);
                 }
-              } catch (error: any) {
-                message.error('域名验证检查失败');
-              }
+              } catch (error: any) {}
             }}
           >
             重新验证
           </a>
         ),
-        <a
-          key="delete"
-          onClick={() => {
-            Modal.confirm({
-              title: '确认删除',
-              content: (
-                <div>
-                  <p>删除域名将同时：</p>
-                  <ul>
-                    <li>删除该域名的所有配置信息</li>
-                    <li>删除使用该域名的所有短链接</li>
-                    <li>相关短链接将无法访问</li>
-                  </ul>
-                  <p>此操作不可恢复，是否继续？</p>
-                </div>
-              ),
-              okText: '确认删除',
-              okType: 'danger',
-              cancelText: '取消',
-              onOk: async () => {
-                try {
+        hasPermission(PERMISSION_CODES.DOMAIN_DELETE) && (
+          <a
+            key="delete"
+            onClick={() => {
+              Modal.confirm({
+                title: '确认删除',
+                content: (
+                  <div>
+                    <p>删除域名将同时：</p>
+                    <ul>
+                      <li>删除该域名的所有配置信息</li>
+                      <li>删除使用该域名的所有短链接</li>
+                      <li>相关短链接将无法访问</li>
+                    </ul>
+                    <p>此操作不可恢复，是否继续？</p>
+                  </div>
+                ),
+                okText: '确认删除',
+                okType: 'danger',
+                cancelText: '取消',
+                onOk: async () => {
                   const result = await deleteDomain(record.domain);
                   if (result.success) {
                     message.success(result.message || '域名及相关短链删除成功');
-                    if (actionRef.current) {
-                      actionRef.current.reload();
-                    }
-                  } else {
-                    message.error(result.message || '删除失败');
+                    actionRef?.current?.reload();
                   }
-                } catch (error: any) {
-                  message.error(error.message || '删除失败');
-                }
-              },
-            });
-          }}
-        >
-          删除
-        </a>,
+                },
+              });
+            }}
+          >
+            删除
+          </a>
+        ),
       ],
     },
   ];
@@ -169,31 +169,36 @@ export default () => {
       <ProTable<DomainItem>
         columns={columns}
         actionRef={actionRef}
-        search={false}
+        search={{
+          labelWidth: 120,
+        }}
         rowKey="_id"
         request={async (params = {}) => {
-          const response = await fetchDomains(params);
+          const res = await fetchAllDomains(params);
           return {
-            data: response.data,
-            success: response.success,
-            total: response.total,
+            data: res.data,
+            success: res.success,
+            total: res.total,
           };
         }}
         pagination={{
           showQuickJumper: true,
+          showSizeChanger: true,
         }}
         toolBarRender={() => [
-          <Button
-            key="add"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              form.resetFields();
-              setModalVisible(true);
-            }}
-          >
-            添加域名
-          </Button>,
+          hasPermission(PERMISSION_CODES.DOMAIN_CREATE) && (
+            <Button
+              key="add"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                form.resetFields();
+                setModalVisible(true);
+              }}
+            >
+              添加域名
+            </Button>
+          ),
         ]}
       />
 

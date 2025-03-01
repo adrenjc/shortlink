@@ -1,63 +1,29 @@
 import { useModel } from 'umi';
 
-export function usePermission() {
+export const usePermission = () => {
   const { initialState } = useModel('@@initialState');
-  const currentUser = initialState?.currentUser;
+  const { currentUser: globalCurrentUser } = initialState || {};
 
-  const getUserPermissions = () => {
-    if (!currentUser) return new Set<string>();
+  const hasPermission = (permission: string) => {
+    if (!globalCurrentUser?.roles) return false;
 
-    const permissions = new Set<string>();
+    const userPermissions = new Set();
 
-    // 添加角色包含的权限
-    currentUser.roles?.forEach((role: any) => {
+    // 收集角色权限
+    globalCurrentUser.roles.forEach((role: any) => {
       role.permissions?.forEach((permission: any) => {
-        permissions.add(permission.code);
+        userPermissions.add(permission.code);
       });
     });
 
-    // 添加直接分配给用户的权限
-    currentUser.permissions?.forEach((permission: any) => {
-      permissions.add(permission.code);
+    // 收集直接分配的权限
+    globalCurrentUser.permissions?.forEach((permission: any) => {
+      userPermissions.add(permission.code);
     });
 
-    return permissions;
+    // admin 用户拥有所有权限
+    return userPermissions.has(permission) || globalCurrentUser.username === 'admin';
   };
 
-  const userPermissions: any = getUserPermissions();
-  const isAdmin = currentUser?.username === 'admin';
-
-  return {
-    /**
-     * 检查是否有特定权限
-     */
-    hasPermission: (permission: string): boolean => {
-      if (!currentUser) return false;
-      if (isAdmin) return true;
-      return userPermissions.has(permission);
-    },
-
-    /**
-     * 检查是否有任意一个权限
-     */
-    hasAnyPermission: (permissions: string[]): boolean => {
-      if (!currentUser) return false;
-      if (isAdmin) return true;
-      return permissions.some((permission) => userPermissions.has(permission));
-    },
-
-    /**
-     * 检查是否有所有权限
-     */
-    hasAllPermissions: (permissions: string[]): boolean => {
-      if (!currentUser) return false;
-      if (isAdmin) return true;
-      return permissions.every((permission) => userPermissions.has(permission));
-    },
-
-    /**
-     * 是否是管理员
-     */
-    isAdmin,
-  };
-}
+  return { hasPermission };
+};

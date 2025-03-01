@@ -82,17 +82,11 @@ const AuditLogList: React.FC = () => {
         try {
           if (!record?.userId) return <span className="text-gray-400">未知用户</span>;
 
-          const nickname = record.userId.nickname;
           const username = record.userId.username;
 
-          if (!nickname && !username) return <span className="text-gray-400">未知用户</span>;
+          if (!username) return <span className="text-gray-400">未知用户</span>;
 
-          return (
-            <span>
-              {nickname || username}
-              {nickname && username && <span className="text-gray-400 ml-2">({username})</span>}
-            </span>
-          );
+          return <span>{username}</span>;
         } catch (error) {
           console.error('用户信息渲染错误:', error);
           return <span className="text-red-500">数据错误</span>;
@@ -134,11 +128,11 @@ const AuditLogList: React.FC = () => {
       ellipsis: true,
       width: 300,
     },
-    {
-      title: 'IP地址',
-      dataIndex: 'ipAddress',
-      width: 130,
-    },
+    // {
+    //   title: 'IP地址',
+    //   dataIndex: 'ipAddress',
+    //   width: 130,
+    // },
     {
       title: '浏览器信息',
       dataIndex: 'userAgent',

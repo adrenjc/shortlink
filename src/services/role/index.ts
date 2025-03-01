@@ -34,7 +34,6 @@ export async function deleteRole(id: string) {
   const response = await apiRequest.delete(`/roles/${id}`);
   return response.data;
 }
-
 // 获取所有权限列表
 export async function getPermissions() {
   const response = await apiRequest.get('/permissions');
