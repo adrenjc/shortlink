@@ -1,9 +1,12 @@
+import { PERMISSION_CODES } from '@/constants/permissions';
+import { usePermission } from '@/hooks/usePermission';
 import { createUser, getAllUsers, updateUser } from '@/services/ant-design-pro/api';
 import { getRoles } from '@/services/role';
 import type { Role } from '@/services/role/typings';
+import { EditOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Form, Input, message, Modal, Select } from 'antd';
+import { Button, Form, Input, message, Modal, Select, Space, Tag } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useModel } from 'umi';
 
@@ -25,24 +28,7 @@ const UserList: React.FC = () => {
   const { initialState } = useModel('@@initialState');
   const { currentUser: globalCurrentUser } = initialState || {};
 
-  const hasPermission = (permission: string) => {
-    // 从用户的角色和权限中检查
-    const userPermissions = new Set();
-
-    // 添加角色包含的权限
-    globalCurrentUser?.roles?.forEach((role: any) => {
-      role.permissions?.forEach((permission: any) => {
-        userPermissions.add(permission.code);
-      });
-    });
-
-    // 添加直接分配给用户的权限
-    globalCurrentUser?.permissions?.forEach((permission: any) => {
-      userPermissions.add(permission.code);
-    });
-
-    return userPermissions.has(permission) || globalCurrentUser?.name === 'admin';
-  };
+  const { hasPermission } = usePermission();
 
   const fetchRoles = async () => {
     try {
@@ -57,12 +43,12 @@ const UserList: React.FC = () => {
     fetchRoles();
   }, []);
 
-  if (!hasPermission('user:view')) {
+  if (!hasPermission(PERMISSION_CODES.USER_VIEW)) {
     return <div>无权限访问此页面</div>;
   }
 
   const handleEdit = (user: UserType) => {
-    if (!hasPermission('user:update')) {
+    if (!hasPermission(PERMISSION_CODES.USER_UPDATE)) {
       message.error('没有编辑权限');
       return;
     }
@@ -122,21 +108,39 @@ const UserList: React.FC = () => {
       title: '角色',
       dataIndex: 'roles',
       key: 'roles',
-      render: (_, record) => record.roles?.map((role) => role.name).join(', ') || '-',
+      search: false,
+      render: (_, record) => (
+        <Space>
+          {record.roles?.map((role) => (
+            <Tag key={role._id} color={role.isSystem ? 'blue' : 'default'}>
+              {role.name}
+            </Tag>
+          )) || '-'}
+        </Space>
+      ),
     },
     {
       title: '创建时间',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      render: (_, record) => new Date(record.createdAt).toLocaleString(),
+      search: false,
+      render: (_, record) => <span>{new Date(record.createdAt).toLocaleString('zh-CN')}</span>,
     },
     {
       title: '操作',
       key: 'action',
+      search: false,
+      width: 80,
+      align: 'center',
       render: (_, record) => (
-        <Button onClick={() => handleEdit(record)} disabled={!hasPermission('user:update')}>
-          编辑
-        </Button>
+        <Space>
+          <Button
+            type="link"
+            icon={<EditOutlined />}
+            onClick={() => handleEdit(record)}
+            disabled={!hasPermission(PERMISSION_CODES.USER_UPDATE)}
+          />
+        </Space>
       ),
     },
   ];
@@ -179,8 +183,9 @@ const UserList: React.FC = () => {
           <Button
             key="add"
             type="primary"
+            icon={<PlusOutlined />}
             onClick={() => {
-              if (!hasPermission('user:create')) {
+              if (!hasPermission(PERMISSION_CODES.USER_CREATE)) {
                 message.error('没有创建权限');
                 return;
               }
@@ -203,14 +208,24 @@ const UserList: React.FC = () => {
           form.resetFields();
         }}
         footer={null}
+        width={520}
+        destroyOnClose
+        centered
       >
-        <Form form={form} onFinish={handleOk}>
+        <Form
+          form={form}
+          onFinish={handleOk}
+          labelCol={{ span: 4 }}
+          wrapperCol={{ span: 19 }}
+          layout="horizontal"
+          autoComplete="off"
+        >
           <Form.Item
             name="username"
             label="用户名"
             rules={[{ required: true, message: '请输入用户名' }]}
           >
-            <Input />
+            <Input placeholder="请输入用户名" />
           </Form.Item>
           <Form.Item
             name="password"
@@ -226,15 +241,26 @@ const UserList: React.FC = () => {
               options={roles.map((role) => ({
                 label: role.name,
                 value: role._id,
-                disabled: role.isSystem && !globalCurrentUser?.name === 'admin',
+                disabled: role.isSystem && globalCurrentUser?.username !== 'admin',
               }))}
               optionFilterProp="label"
             />
           </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              提交
-            </Button>
+          <Form.Item wrapperCol={{ offset: 4, span: 19 }}>
+            <Space>
+              <Button type="primary" htmlType="submit">
+                确定
+              </Button>
+              <Button
+                onClick={() => {
+                  setIsModalVisible(false);
+                  setCurrentUser(null);
+                  form.resetFields();
+                }}
+              >
+                取消
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </Modal>

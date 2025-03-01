@@ -79,3 +79,14 @@ export async function createUser(data: { username: string; password: string; rol
     throw error; // 抛出错误以便调用者处理
   }
 }
+
+/** 注册接口 POST /api/register */
+export async function register(data: { username: string; password: string }) {
+  try {
+    const response = await apiRequest.post('/register', data);
+    return response.data;
+  } catch (error) {
+    console.error('注册失败:', error);
+    throw error;
+  }
+}

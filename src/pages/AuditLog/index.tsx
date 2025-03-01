@@ -1,3 +1,4 @@
+import { ACTION_MAP, RESOURCE_TYPE_MAP } from '@/constants/auditLogTypes';
 import type { AuditLog } from '@/services/auditLog';
 import { getAuditLogs } from '@/services/auditLog';
 import { QuestionCircleOutlined } from '@ant-design/icons';
@@ -9,35 +10,6 @@ import React, { useRef, useState } from 'react';
 
 const AuditLogList: React.FC = () => {
   const actionRef = useRef<ActionType>();
-
-  // 操作类型映射
-  const actionMap = {
-    // 短链接相关
-    CREATE_LINK: { text: '创建短链接', color: 'blue' },
-    DELETE_LINK: { text: '删除短链接', color: 'red' },
-    UPDATE_LINK: { text: '更新短链接', color: 'orange' },
-    CLICK_LINK: { text: '访问短链接', color: 'green' },
-
-    // 用户相关
-    UPDATE_PASSWORD: { text: '更新密码', color: 'orange' },
-    USER_UPDATE: { text: '更新用户信息', color: 'cyan' },
-    REGISTER: { text: '用户注册', color: 'purple' },
-    LOGIN: { text: '用户登录', color: 'cyan' },
-    LOGOUT: { text: '用户登出', color: 'grey' },
-
-    // 域名相关
-    CREATE_DOMAIN: { text: '添加域名', color: 'green' },
-    DELETE_DOMAIN: { text: '删除域名', color: 'red' },
-    VERIFY_DOMAIN: { text: '验证域名', color: 'cyan' },
-    DOMAIN_VERIFY: { text: '域名验证', color: 'blue' },
-  };
-
-  // 资源类型映射
-  const resourceTypeMap = {
-    LINK: { text: '短链接', color: 'blue' },
-    USER: { text: '用户', color: 'green' },
-    DOMAIN: { text: '域名', color: 'orange' },
-  };
 
   // 添加状态来存储当前的筛选条件
   const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
@@ -66,10 +38,10 @@ const AuditLogList: React.FC = () => {
         case 'status':
           return `状态: ${value === 'SUCCESS' ? '成功' : value === 'FAILURE' ? '失败' : '未知'}`;
         case 'action':
-          return `操作类型: ${actionMap[value as keyof typeof actionMap]?.text || '未知操作'}`;
+          return `操作类型: ${ACTION_MAP[value as keyof typeof ACTION_MAP]?.text || '未知操作'}`;
         case 'resourceType':
           return `资源类型: ${
-            resourceTypeMap[value as keyof typeof resourceTypeMap]?.text || '未知类型'
+            RESOURCE_TYPE_MAP[value as keyof typeof RESOURCE_TYPE_MAP]?.text || '未知类型'
           }`;
         case 'userId':
           return `用户: ${value || '未知用户'}`;
@@ -138,10 +110,10 @@ const AuditLogList: React.FC = () => {
       ),
       dataIndex: 'action',
       valueEnum: Object.fromEntries(
-        Object.entries(actionMap).map(([key, value]) => [key, { text: value.text }]),
+        Object.entries(ACTION_MAP).map(([key, value]) => [key, { text: value.text }]),
       ),
       render: (_, record) => {
-        const action = actionMap[record.action as keyof typeof actionMap];
+        const action = ACTION_MAP[record.action as keyof typeof ACTION_MAP];
         return action ? <Tag color={action.color}>{action.text}</Tag> : record.action;
       },
     },
@@ -149,10 +121,10 @@ const AuditLogList: React.FC = () => {
       title: '资源类型',
       dataIndex: 'resourceType',
       valueEnum: Object.fromEntries(
-        Object.entries(resourceTypeMap).map(([key, value]) => [key, { text: value.text }]),
+        Object.entries(RESOURCE_TYPE_MAP).map(([key, value]) => [key, { text: value.text }]),
       ),
       render: (_, record) => {
-        const type = resourceTypeMap[record.resourceType as keyof typeof resourceTypeMap];
+        const type = RESOURCE_TYPE_MAP[record.resourceType as keyof typeof RESOURCE_TYPE_MAP];
         return type ? <Tag color={type.color}>{type.text}</Tag> : record.resourceType;
       },
     },

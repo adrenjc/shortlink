@@ -1,149 +1,184 @@
 import { currentUser, login } from '@/services/ant-design-pro/api';
 import { Helmet, history, useModel } from '@umijs/max';
-import { message } from 'antd';
+import { message, Tabs } from 'antd';
 import { createStyles } from 'antd-style';
 import React, { useState } from 'react';
 import { flushSync } from 'react-dom';
 import Settings from '../../../../config/defaultSettings';
 
-const useStyles = createStyles(() => {
-  return {
-    container: {
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%)',
-      padding: '20px',
-    },
-    loginCard: {
-      width: '100%',
-      maxWidth: '400px',
-      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-      borderRadius: '20px',
-      padding: '40px',
-      backdropFilter: 'blur(20px)',
-      border: '1px solid rgba(255, 255, 255, 0.8)',
-      boxShadow: '0 15px 35px rgba(0, 0, 0, 0.05)',
-      animation: 'fadeIn 0.6s ease-out',
+const useStyles = createStyles(() => ({
+  container: {
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%)',
+    padding: '20px',
+  },
+  loginCard: {
+    width: '100%',
+    maxWidth: '400px',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: '20px',
+    padding: '40px',
+    backdropFilter: 'blur(20px)',
+    border: '1px solid rgba(255, 255, 255, 0.8)',
+    boxShadow: '0 15px 35px rgba(0, 0, 0, 0.05)',
+    animation: 'fadeIn 0.6s ease-out',
 
-      '@media screen and (max-width: 576px)': {
-        padding: '30px 20px',
-      },
+    '@media screen and (max-width: 576px)': {
+      padding: '30px 20px',
     },
-    title: {
-      fontSize: '32px',
-      fontWeight: 700,
-      color: '#2c3e50',
-      textAlign: 'center',
-      marginBottom: '8px',
-      letterSpacing: '0.5px',
+  },
+  title: {
+    fontSize: '32px',
+    fontWeight: 700,
+    color: '#2c3e50',
+    textAlign: 'center',
+    marginBottom: '8px',
+    letterSpacing: '0.5px',
+  },
+  subtitle: {
+    fontSize: '16px',
+    color: '#7f8c8d',
+    textAlign: 'center',
+    marginBottom: '40px',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
+  },
+  inputGroup: {
+    position: 'relative',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+  },
+  label: {
+    color: '#34495e',
+    fontSize: '14px',
+    marginLeft: '4px',
+    fontWeight: 500,
+  },
+  input: {
+    width: '100%',
+    padding: '12px 16px',
+    backgroundColor: '#ffffff',
+    border: 'none',
+    borderRadius: '12px',
+    color: '#2c3e50',
+    fontSize: '15px',
+    transition: 'all 0.3s ease',
+    outline: 'none',
+    boxShadow: '0 0 0 2px rgba(52, 152, 219, 0.1)',
+
+    '&:focus': {
+      boxShadow: '0 0 0 3px rgba(52, 152, 219, 0.3)',
     },
-    subtitle: {
+
+    '&::placeholder': {
+      color: '#bdc3c7',
+    },
+  },
+  error: {
+    backgroundColor: '#fff5f5',
+    color: '#e74c3c',
+    padding: '12px',
+    borderRadius: '12px',
+    fontSize: '14px',
+    marginBottom: '20px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    border: '1px solid #ffd5d5',
+
+    '&::before': {
+      content: '"⚠"',
       fontSize: '16px',
-      color: '#7f8c8d',
-      textAlign: 'center',
-      marginBottom: '40px',
     },
-    form: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '20px',
-    },
-    inputGroup: {
-      position: 'relative',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '6px',
-    },
-    label: {
-      color: '#34495e',
-      fontSize: '14px',
-      marginLeft: '4px',
-      fontWeight: 500,
-    },
-    input: {
-      width: '100%',
-      padding: '12px 16px',
-      backgroundColor: '#ffffff',
-      border: 'none',
-      borderRadius: '12px',
-      color: '#2c3e50',
-      fontSize: '15px',
-      transition: 'all 0.3s ease',
-      outline: 'none',
-      boxShadow: '0 0 0 2px rgba(52, 152, 219, 0.1)',
+  },
+  button: {
+    width: '100%',
+    padding: '14px',
+    backgroundColor: '#d9b68c',
+    border: 'none',
+    borderRadius: '12px',
+    color: '#ffffff',
+    fontSize: '16px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    marginTop: '10px',
 
-      '&:focus': {
-        boxShadow: '0 0 0 3px rgba(52, 152, 219, 0.3)',
-      },
-
-      '&::placeholder': {
-        color: '#bdc3c7',
-      },
+    '&:hover': {
+      backgroundColor: '#c69c7a',
+      transform: 'translateY(-2px)',
+      boxShadow: '0 5px 15px rgba(215, 182, 140, 0.2)',
     },
-    error: {
-      backgroundColor: '#fff5f5',
-      color: '#e74c3c',
-      padding: '12px',
-      borderRadius: '12px',
-      fontSize: '14px',
-      marginBottom: '20px',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      border: '1px solid #ffd5d5',
 
+    '&:disabled': {
+      backgroundColor: '#bdc3c7',
+      opacity: 0.7,
+      cursor: 'not-allowed',
+      transform: 'none',
+    },
+  },
+  '@keyframes fadeIn': {
+    from: {
+      opacity: 0,
+      transform: 'translateY(20px)',
+    },
+    to: {
+      opacity: 1,
+      transform: 'translateY(0)',
+    },
+  },
+  tabs: {
+    marginBottom: '24px',
+    '.ant-tabs-nav': {
+      marginBottom: '24px',
       '&::before': {
-        content: '"⚠"',
-        fontSize: '16px',
+        border: 'none',
       },
     },
-    button: {
-      width: '100%',
-      padding: '14px',
-      backgroundColor: '#d9b68c',
-      border: 'none',
-      borderRadius: '12px',
-      color: '#ffffff',
+    '.ant-tabs-tab': {
+      padding: '12px 0',
       fontSize: '16px',
-      fontWeight: 600,
-      cursor: 'pointer',
-      transition: 'all 0.3s ease',
-      marginTop: '10px',
-
-      '&:hover': {
-        backgroundColor: '#c69c7a',
-        transform: 'translateY(-2px)',
-        boxShadow: '0 5px 15px rgba(215, 182, 140, 0.2)',
-      },
-
-      '&:disabled': {
-        backgroundColor: '#bdc3c7',
-        opacity: 0.7,
-        cursor: 'not-allowed',
-        transform: 'none',
+      '&.ant-tabs-tab-active .ant-tabs-tab-btn': {
+        color: '#d9b68c',
       },
     },
-    '@keyframes fadeIn': {
-      from: {
-        opacity: 0,
-        transform: 'translateY(20px)',
-      },
-      to: {
-        opacity: 1,
-        transform: 'translateY(0)',
-      },
+    '.ant-tabs-ink-bar': {
+      backgroundColor: '#d9b68c',
     },
-  };
-});
+  },
+  registerForm: {
+    '.ant-form-item': {
+      marginBottom: '24px',
+    },
+  },
+  passwordStrength: {
+    marginTop: '4px',
+    fontSize: '12px',
+    '&.weak': { color: '#ff4d4f' },
+    '&.medium': { color: '#faad14' },
+    '&.strong': { color: '#52c41a' },
+  },
+}));
 
 const Login: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('login');
   const [userLoginState, setUserLoginState] = useState<API.LoginResult>({});
   const { setInitialState } = useModel('@@initialState');
   const { styles } = useStyles();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
+  const [registerForm, setRegisterForm] = useState({
+    username: '',
+    password: '',
+    confirmPassword: '',
+  });
 
   const fetchUserInfo = async () => {
     const userInfo = await currentUser();
@@ -158,11 +193,11 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const result = await login(formData);
+      const result = await login(loginForm);
       if (result.token) {
         message.success('登录成功！');
         await fetchUserInfo();
@@ -178,56 +213,141 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (registerForm.password !== registerForm.confirmPassword) {
+      message.error('两次输入的密码不一致！');
+      return;
+    }
+    setLoading(true);
+    try {
+      // TODO: 调用注册接口
+      message.success('注册成功！');
+      setActiveTab('login');
+    } catch (error: any) {
+      message.error(error.response?.data?.message || '注册失败，请重试！');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const LoginForm = (
+    <form className={styles.form} onSubmit={handleLogin}>
+      <div className={styles.inputGroup}>
+        <label className={styles.label}>用户名</label>
+        <input
+          type="text"
+          name="username"
+          className={styles.input}
+          placeholder="请输入用户名"
+          value={loginForm.username}
+          onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
+          required
+        />
+      </div>
+
+      <div className={styles.inputGroup}>
+        <label className={styles.label}>密码</label>
+        <input
+          type="password"
+          name="password"
+          className={styles.input}
+          placeholder="请输入密码"
+          value={loginForm.password}
+          onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+          required
+        />
+      </div>
+
+      <button type="submit" className={styles.button} disabled={loading}>
+        {loading ? '登录中...' : '登录'}
+      </button>
+    </form>
+  );
+
+  const RegisterForm = (
+    <form className={`${styles.form} ${styles.registerForm}`} onSubmit={handleRegister}>
+      <div className={styles.inputGroup}>
+        <label className={styles.label}>用户名</label>
+        <input
+          type="text"
+          name="username"
+          className={styles.input}
+          placeholder="请输入用户名（至少3个字符）"
+          value={registerForm.username}
+          onChange={(e) => setRegisterForm({ ...registerForm, username: e.target.value })}
+          required
+          minLength={3}
+        />
+      </div>
+
+      <div className={styles.inputGroup}>
+        <label className={styles.label}>密码</label>
+        <input
+          type="password"
+          name="password"
+          className={styles.input}
+          placeholder="请输入密码（至少6个字符）"
+          value={registerForm.password}
+          onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
+          required
+          minLength={6}
+        />
+      </div>
+
+      <div className={styles.inputGroup}>
+        <label className={styles.label}>确认密码</label>
+        <input
+          type="password"
+          name="confirmPassword"
+          className={styles.input}
+          placeholder="请再次输入密码"
+          value={registerForm.confirmPassword}
+          onChange={(e) => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })}
+          required
+        />
+      </div>
+
+      <button type="submit" className={styles.button} disabled={loading}>
+        {loading ? '注册中...' : '注册'}
+      </button>
+    </form>
+  );
 
   return (
     <div className={styles.container}>
       <Helmet>
-        <title>登录 - {Settings.title}</title>
+        <title>
+          {activeTab === 'login' ? '登录' : '注册'} - {Settings.title}
+        </title>
       </Helmet>
 
       <div className={styles.loginCard}>
-        <h1 className={styles.title}>Welcome Back</h1>
-        <p className={styles.subtitle}>请登录您的账户继续访问</p>
-
-        {userLoginState.status === 'error' && (
-          <div className={styles.error}>账户或密码错误，请重试</div>
-        )}
-
-        <form className={styles.form} onSubmit={handleSubmit}>
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>用户名</label>
-            <input
-              type="text"
-              name="username"
-              className={styles.input}
-              placeholder="请输入用户名"
-              value={formData.username}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>密码</label>
-            <input
-              type="password"
-              name="password"
-              className={styles.input}
-              placeholder="请输入密码"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <button type="submit" className={styles.button} disabled={loading}>
-            {loading ? '登录中...' : '登录'}
-          </button>
-        </form>
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          centered
+          className={styles.tabs}
+          items={[
+            {
+              key: 'login',
+              label: '账号登录',
+              children: (
+                <>
+                  {userLoginState.status === 'error' && (
+                    <div className={styles.error}>账户或密码错误，请重试</div>
+                  )}
+                  {LoginForm}
+                </>
+              ),
+            },
+            {
+              key: 'register',
+              label: '注册账号',
+              children: RegisterForm,
+            },
+          ]}
+        />
       </div>
     </div>
   );

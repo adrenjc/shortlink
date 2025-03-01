@@ -251,7 +251,7 @@ export default () => {
                 <Paragraph copyable>47.83.207.5</Paragraph>
               </li>
               <li>
-                <strong>TTL：</strong> 600
+                <strong>TTL:</strong> 600
               </li>
             </ul>
           </Paragraph>
@@ -273,7 +273,7 @@ export default () => {
                 <Paragraph copyable>{currentDomain?.verificationCode}</Paragraph>
               </li>
               <li>
-                <strong>TTL：</strong> 600
+                <strong>TTL:</strong> 600
               </li>
             </ul>
           </Paragraph>

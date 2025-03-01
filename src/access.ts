@@ -1,3 +1,5 @@
+import { PERMISSION_CODES } from '@/constants/permissions';
+
 /**
  * @see https://umijs.org/docs/max/access#access
  *
@@ -33,29 +35,38 @@ export default function access(initialState: { currentUser?: API.CurrentUser } |
 
   const userPermissions = getUserPermissions();
 
+  // 检查是否有审计日志权限
+
   return {
     // 是否是超级管理员
     canAdmin: currentUser && currentUser.username === 'admin',
 
-    // 检查是否有特定权限
-    hasPermission: (permission: string) => {
+    //检查是否有审计日志权限
+    hasAuditLogPermission: () => {
       if (!currentUser) return false;
       if (currentUser.username === 'admin') return true;
-      return userPermissions.has(permission);
+      return userPermissions.has(PERMISSION_CODES.AUDIT_VIEW);
     },
 
-    // 检查是否有任意一个权限
-    hasAnyPermission: (permissions: string[]) => {
+    // 检查是否有用户管理权限
+    hasUserManagementPermission: () => {
       if (!currentUser) return false;
       if (currentUser.username === 'admin') return true;
-      return permissions.some((permission) => userPermissions.has(permission));
+      return userPermissions.has(PERMISSION_CODES.USER_VIEW);
     },
 
-    // 检查是否有所有权限
-    hasAllPermissions: (permissions: string[]) => {
+    // 检查是否有域名管理权限
+    hasDomainManagementPermission: () => {
       if (!currentUser) return false;
       if (currentUser.username === 'admin') return true;
-      return permissions.every((permission) => userPermissions.has(permission));
+      return userPermissions.has(PERMISSION_CODES.DOMAIN_MANAGE);
+    },
+
+    // 检查是否有角色管理权限
+    hasRoleManagementPermission: () => {
+      if (!currentUser) return false;
+      if (currentUser.username === 'admin') return true;
+      return userPermissions.has(PERMISSION_CODES.ROLE_VIEW);
     },
   };
 }

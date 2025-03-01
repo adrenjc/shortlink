@@ -82,27 +82,28 @@ export default [
     name: '域名管理',
     icon: 'GlobalOutlined',
     component: './DomainManage',
+    access: 'hasDomainManagementPermission',
   },
   {
     path: '/user-list',
     name: '用户列表',
     icon: 'UserOutlined',
     component: './UserManagement/UserList',
-    access: 'canAdmin', // 恢复权限控制
+    access: 'hasUserManagementPermission',
   },
   {
     path: '/audit-log',
     name: '审计日志',
     icon: 'AuditOutlined',
     component: './AuditLog',
-    access: 'canAdmin', // 确保只有管理员可以访问
+    access: 'hasAuditLogPermission',
   },
   {
     path: '/role',
     name: '角色管理',
     icon: 'TeamOutlined',
     component: './RoleManagement',
-    access: 'canAdmin', // 恢复权限控制
+    access: 'hasRoleManagementPermission',
   },
   {
     path: '/',
