@@ -18,7 +18,7 @@ export const createShortLink = async (data: {
 // 获取用户所有短链接
 export const fetchLinks = async (params?: { [key: string]: any }): Promise<any> => {
   try {
-    const response = await apiRequest.get(`/links`, { params });
+    const response = await apiRequest.get(`/links`, params);
     return response.data;
   } catch (error) {
     console.error('获取短链接错误:', error);

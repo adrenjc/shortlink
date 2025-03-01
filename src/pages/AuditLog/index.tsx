@@ -133,13 +133,13 @@ const AuditLogList: React.FC = () => {
     //   dataIndex: 'ipAddress',
     //   width: 130,
     // },
-    {
-      title: '浏览器信息',
-      dataIndex: 'userAgent',
-      ellipsis: true,
-      width: 200,
-      search: false,
-    },
+    // {
+    //   title: '浏览器信息',
+    //   dataIndex: 'userAgent',
+    //   ellipsis: true,
+    //   width: 200,
+    //   search: false,
+    // },
     {
       title: '状态',
       dataIndex: 'status',
