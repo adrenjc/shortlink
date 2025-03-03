@@ -1,8 +1,9 @@
+import { AUTH_TOKEN_KEY } from '@/constants/auth';
 import { currentUser, login, register } from '@/services/login/';
 import { Helmet, history, useModel } from '@umijs/max';
 import { message, Tabs } from 'antd';
 import { createStyles } from 'antd-style';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import Settings from '../../../../config/defaultSettings';
 
@@ -12,51 +13,52 @@ const useStyles = createStyles(() => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%)',
+    // background: 'linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%)',
     padding: '20px',
   },
   loginCard: {
     width: '100%',
     maxWidth: '400px',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: '20px',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: '24px',
     padding: '40px',
-    backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.8)',
-    boxShadow: '0 15px 35px rgba(0, 0, 0, 0.05)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(114, 46, 209, 0.1)',
+    boxShadow: '0 20px 40px rgba(114, 46, 209, 0.08)',
     animation: 'fadeIn 0.6s ease-out',
 
     '@media screen and (max-width: 576px)': {
       padding: '30px 20px',
+      borderRadius: '20px',
     },
   },
   title: {
     fontSize: '32px',
     fontWeight: 700,
-    color: '#2c3e50',
+    color: '#722ED1',
     textAlign: 'center',
     marginBottom: '8px',
     letterSpacing: '0.5px',
   },
   subtitle: {
     fontSize: '16px',
-    color: '#7f8c8d',
+    color: '#8c8c8c',
     textAlign: 'center',
     marginBottom: '40px',
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '20px',
+    gap: '24px',
   },
   inputGroup: {
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
-    gap: '6px',
+    gap: '8px',
   },
   label: {
-    color: '#34495e',
+    color: '#595959',
     fontSize: '14px',
     marginLeft: '4px',
     fontWeight: 500,
@@ -64,44 +66,51 @@ const useStyles = createStyles(() => ({
   input: {
     width: '100%',
     padding: '12px 16px',
-    backgroundColor: '#ffffff',
-    border: 'none',
+    backgroundColor: '#fafafa',
+    border: '2px solid transparent',
     borderRadius: '12px',
-    color: '#2c3e50',
+    color: '#262626',
     fontSize: '15px',
     transition: 'all 0.3s ease',
     outline: 'none',
-    boxShadow: '0 0 0 2px rgba(52, 152, 219, 0.1)',
+
+    '&:hover': {
+      backgroundColor: '#f5f5f5',
+      borderColor: 'rgba(114, 46, 209, 0.1)',
+    },
 
     '&:focus': {
-      boxShadow: '0 0 0 3px rgba(52, 152, 219, 0.3)',
+      backgroundColor: '#ffffff',
+      borderColor: '#722ED1',
+      boxShadow: '0 0 0 3px rgba(114, 46, 209, 0.1)',
     },
 
     '&::placeholder': {
-      color: '#bdc3c7',
+      color: '#bfbfbf',
     },
   },
   error: {
-    backgroundColor: '#fff5f5',
-    color: '#e74c3c',
-    padding: '12px',
+    backgroundColor: '#fff1f0',
+    color: '#ff4d4f',
+    padding: '12px 16px',
     borderRadius: '12px',
     fontSize: '14px',
     marginBottom: '20px',
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    border: '1px solid #ffd5d5',
+    border: '1px solid #ffccc7',
 
     '&::before': {
       content: '"⚠"',
       fontSize: '16px',
+      color: '#ff4d4f',
     },
   },
   button: {
     width: '100%',
     padding: '14px',
-    backgroundColor: '#d9b68c',
+    backgroundColor: '#722ED1',
     border: 'none',
     borderRadius: '12px',
     color: '#ffffff',
@@ -110,18 +119,27 @@ const useStyles = createStyles(() => ({
     cursor: 'pointer',
     transition: 'all 0.3s ease',
     marginTop: '10px',
+    position: 'relative',
+    overflow: 'hidden',
 
     '&:hover': {
-      backgroundColor: '#c69c7a',
+      backgroundColor: '#8546d6',
       transform: 'translateY(-2px)',
-      boxShadow: '0 5px 15px rgba(215, 182, 140, 0.2)',
+      boxShadow: '0 6px 20px rgba(114, 46, 209, 0.25)',
+    },
+
+    '&:active': {
+      backgroundColor: '#642ab5',
+      transform: 'translateY(0)',
+      boxShadow: '0 3px 10px rgba(114, 46, 209, 0.2)',
     },
 
     '&:disabled': {
-      backgroundColor: '#bdc3c7',
+      backgroundColor: '#d9d9d9',
       opacity: 0.7,
       cursor: 'not-allowed',
       transform: 'none',
+      boxShadow: 'none',
     },
   },
   '@keyframes fadeIn': {
@@ -135,9 +153,9 @@ const useStyles = createStyles(() => ({
     },
   },
   tabs: {
-    marginBottom: '24px',
+    marginBottom: '32px',
     '.ant-tabs-nav': {
-      marginBottom: '24px',
+      marginBottom: '32px',
       '&::before': {
         border: 'none',
       },
@@ -145,12 +163,21 @@ const useStyles = createStyles(() => ({
     '.ant-tabs-tab': {
       padding: '12px 0',
       fontSize: '16px',
+      transition: 'all 0.3s ease',
+
+      '&:hover': {
+        color: '#8546d6',
+      },
+
       '&.ant-tabs-tab-active .ant-tabs-tab-btn': {
-        color: '#d9b68c',
+        color: '#722ED1',
+        fontWeight: 600,
       },
     },
     '.ant-tabs-ink-bar': {
-      backgroundColor: '#d9b68c',
+      backgroundColor: '#722ED1',
+      height: '3px',
+      borderRadius: '3px',
     },
   },
   registerForm: {
@@ -179,6 +206,39 @@ const Login: React.FC = () => {
     password: '',
     confirmPassword: '',
   });
+
+  // 修改 useEffect 中的 token 获取
+  useEffect(() => {
+    const checkToken = async () => {
+      const token = localStorage.getItem(AUTH_TOKEN_KEY);
+      if (token) {
+        try {
+          const userInfo = await currentUser();
+          if (userInfo?.data) {
+            flushSync(() => {
+              setInitialState((s) => ({
+                ...s,
+                currentUser: userInfo.data,
+              }));
+            });
+
+            const urlParams = new URL(window.location.href).searchParams;
+            const redirect = urlParams.get('redirect');
+
+            history.push(redirect || '/');
+            message.success('已自动登录');
+          }
+        } catch (error: any) {
+          if (error.response?.status === 401) {
+            localStorage.removeItem(AUTH_TOKEN_KEY);
+            message.error('登录已过期，请重新登录');
+          }
+        }
+      }
+    };
+
+    checkToken();
+  }, [setInitialState]);
 
   const fetchUserInfo = async () => {
     const userInfo = await currentUser();
@@ -239,35 +299,28 @@ const Login: React.FC = () => {
 
     setLoading(true);
     try {
-      // 调用注册接口
       const result = await register({
         username: registerForm.username,
         password: registerForm.password,
       });
 
-      // 如果注册接口返回了token，直接保存并获取用户信息
       if (result.token) {
-        localStorage.setItem('x-auth-token', result.token);
+        localStorage.setItem(AUTH_TOKEN_KEY, result.token); // 使用常量
         message.success('注册成功！');
 
-        // 获取用户信息
         await fetchUserInfo();
 
-        // 跳转到首页或指定的重定向页面
         const urlParams = new URL(window.location.href).searchParams;
         history.push(urlParams.get('redirect') || '/');
       } else {
-        // 如果没有返回token，切换到登录页面
         message.success('注册成功，请登录！');
         setActiveTab('login');
-        // 自动填充登录表单
         setLoginForm({
           username: registerForm.username,
           password: registerForm.password,
         });
       }
 
-      // 清空注册表单
       setRegisterForm({
         username: '',
         password: '',
