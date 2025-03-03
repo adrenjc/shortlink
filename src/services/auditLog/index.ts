@@ -1,4 +1,4 @@
-import { apiRequest } from './index';
+import { apiRequest } from '@/services';
 
 // 审计日志列表查询参数接口
 export interface AuditLogParams {

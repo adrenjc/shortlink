@@ -1,5 +1,5 @@
-import { fetchAllDomains } from '@/services/domain/domain';
-import { fetchLinks } from '@/services/shortUrl/shorturl';
+import { fetchAllDomains } from '@/services/domain';
+import { fetchLinks } from '@/services/shortUrl';
 import { PlusOutlined } from '@ant-design/icons';
 import { ActionType, ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Form, Input, Modal, Select, message } from 'antd';

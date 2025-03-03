@@ -2,7 +2,7 @@ import {
   deleteLink as apiDeleteLink,
   updateLink as apiUpdateLink,
   createShortLink,
-} from '../services/shortUrl/shorturl'; // 引入 API 方法
+} from '../services/shortUrl'; // 引入 API 方法
 
 export default function useShortLinks() {
   const addLink = async (values: any) => {

@@ -1,4 +1,4 @@
-import { currentUser, login, register } from '@/services/ant-design-pro/api';
+import { currentUser, login, register } from '@/services/login/';
 import { Helmet, history, useModel } from '@umijs/max';
 import { message, Tabs } from 'antd';
 import { createStyles } from 'antd-style';

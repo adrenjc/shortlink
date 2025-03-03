@@ -6,7 +6,7 @@ import {
   fetchAllDomains,
   recheckDomain,
   verifyDomain,
-} from '@/services/domain/domain';
+} from '@/services/domain';
 import { PlusOutlined } from '@ant-design/icons';
 import { ActionType, ProColumns, ProTable } from '@ant-design/pro-components';
 import { Button, Form, Input, Modal, Tag, Typography, message } from 'antd';

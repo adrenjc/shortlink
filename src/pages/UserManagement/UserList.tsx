@@ -1,6 +1,6 @@
 import { PERMISSION_CODES } from '@/constants/permissions';
 import { usePermission } from '@/hooks/usePermission';
-import { createUser, getAllUsers, updateUser } from '@/services/ant-design-pro/api';
+import { createUser, getAllUsers, updateUser } from '@/services/login';
 import { getRoles } from '@/services/role';
 import type { Role } from '@/services/role/typings';
 import { EditOutlined, PlusOutlined } from '@ant-design/icons';
