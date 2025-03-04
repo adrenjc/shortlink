@@ -57,29 +57,55 @@ export default [
   //   path: '/table',
   //   component: './Table',
   // },
-  {
-    path: '/chat',
-    name: 'AI对话',
-    icon: 'MessageOutlined',
-    component: './Chat',
-    routes: [
-      {
-        path: '/chat',
-        component: './Chat/index',
-      },
-    ],
-  },
+  // {
+  //   path: '/chat',
+  //   name: 'AI对话',
+  //   icon: 'MessageOutlined',
+  //   component: './Chat',
+  //   routes: [
+  //     {
+  //       path: '/chat',
+  //       component: './Chat/index',
+  //     },
+  //   ],
+  // },
   {
     path: '/short-link',
     name: '短链管理',
     icon: 'LinkOutlined',
     component: '@/pages/ShortLink',
-    // access: 'canUser', // 权限控制
   },
-
+  {
+    path: '/domain',
+    name: '域名管理',
+    icon: 'GlobalOutlined',
+    component: './DomainManage',
+    access: 'hasDomainManagementPermission',
+  },
+  {
+    path: '/user-list',
+    name: '用户列表',
+    icon: 'UserOutlined',
+    component: './UserManagement/UserList',
+    access: 'hasUserManagementPermission',
+  },
+  {
+    path: '/audit-log',
+    name: '审计日志',
+    icon: 'AuditOutlined',
+    component: './AuditLog',
+    access: 'hasAuditLogPermission',
+  },
+  {
+    path: '/role',
+    name: '角色管理',
+    icon: 'TeamOutlined',
+    component: './RoleManagement',
+    access: 'hasRoleManagementPermission',
+  },
   {
     path: '/',
-    redirect: '/chat',
+    redirect: '/short-link',
   },
   {
     path: '*',
