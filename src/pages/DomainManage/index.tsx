@@ -253,7 +253,7 @@ export default () => {
               </li>
               <li>
                 <strong>记录值：</strong>
-                <Paragraph copyable>47.83.207.5</Paragraph>
+                <Paragraph copyable>47.107.251.45</Paragraph>
               </li>
               <li>
                 <strong>TTL:</strong> 600

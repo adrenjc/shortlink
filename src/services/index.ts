@@ -29,7 +29,7 @@ const getDomainApiUrl = (): string => {
   }
 
   // 如果没有匹配到，返回默认API地址
-  return 'http://47.83.207.5/api';
+  return 'http://47.107.251.45/api';
 };
 
 const ENV_CONFIG = {
@@ -37,10 +37,10 @@ const ENV_CONFIG = {
     apiUrl: 'http://localhost:5000/api', // 开发环境
   },
   test: {
-    apiUrl: 'http://47.83.207.5/api', // 测试环境
+    apiUrl: 'http://47.107.251.45/api', // 测试环境
   },
   pre: {
-    apiUrl: 'http://47.83.207.5/api', // 预发环境
+    apiUrl: 'http://47.107.251.45/api', // 预发环境
   },
   prod: {
     apiUrl: getDomainApiUrl(), // 根据域名动态获取API地址
