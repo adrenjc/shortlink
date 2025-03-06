@@ -38,7 +38,7 @@ screenshot
 .firebase
 .eslintcache
 
-build
-build.tar.gz
-
 .cursor
+
+# 添加 dist 相关的行
+dist.tar.gz
