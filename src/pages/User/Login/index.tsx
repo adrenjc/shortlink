@@ -1,5 +1,5 @@
 import { AUTH_TOKEN_KEY } from '@/constants/auth';
-import { currentUser, login, register } from '@/services/login/';
+import { currentUser, login } from '@/services/login/';
 import { Helmet, history, useModel } from '@umijs/max';
 import { message, Tabs } from 'antd';
 import { createStyles } from 'antd-style';
@@ -201,11 +201,11 @@ const Login: React.FC = () => {
   const { styles } = useStyles();
   const [loading, setLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
-  const [registerForm, setRegisterForm] = useState({
-    username: '',
-    password: '',
-    confirmPassword: '',
-  });
+  // const [registerForm, setRegisterForm] = useState({
+  //   username: '',
+  //   password: '',
+  //   confirmPassword: '',
+  // });
 
   // 修改 useEffect 中的 token 获取
   useEffect(() => {
@@ -273,64 +273,64 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // const handleRegister = async (e: React.FormEvent) => {
+  //   e.preventDefault();
 
-    // 表单验证
-    if (!registerForm.username || !registerForm.password) {
-      message.error('用户名和密码不能为空！');
-      return;
-    }
+  //   // 表单验证
+  //   if (!registerForm.username || !registerForm.password) {
+  //     message.error('用户名和密码不能为空！');
+  //     return;
+  //   }
 
-    if (registerForm.username.length < 3) {
-      message.error('用户名至少需要3个字符！');
-      return;
-    }
+  //   if (registerForm.username.length < 3) {
+  //     message.error('用户名至少需要3个字符！');
+  //     return;
+  //   }
 
-    if (registerForm.password.length < 6) {
-      message.error('密码至少需要6个字符！');
-      return;
-    }
+  //   if (registerForm.password.length < 6) {
+  //     message.error('密码至少需要6个字符！');
+  //     return;
+  //   }
 
-    if (registerForm.password !== registerForm.confirmPassword) {
-      message.error('两次输入的密码不一致！');
-      return;
-    }
+  //   if (registerForm.password !== registerForm.confirmPassword) {
+  //     message.error('两次输入的密码不一致！');
+  //     return;
+  //   }
 
-    setLoading(true);
-    try {
-      const result = await register({
-        username: registerForm.username,
-        password: registerForm.password,
-      });
+  //   setLoading(true);
+  //   try {
+  //     const result = await register({
+  //       username: registerForm.username,
+  //       password: registerForm.password,
+  //     });
 
-      if (result.token) {
-        localStorage.setItem(AUTH_TOKEN_KEY, result.token); // 使用常量
-        message.success('注册成功！');
+  //     if (result.token) {
+  //       localStorage.setItem(AUTH_TOKEN_KEY, result.token); // 使用常量
+  //       message.success('注册成功！');
 
-        await fetchUserInfo();
+  //       await fetchUserInfo();
 
-        const urlParams = new URL(window.location.href).searchParams;
-        history.push(urlParams.get('redirect') || '/');
-      } else {
-        message.success('注册成功，请登录！');
-        setActiveTab('login');
-        setLoginForm({
-          username: registerForm.username,
-          password: registerForm.password,
-        });
-      }
+  //       const urlParams = new URL(window.location.href).searchParams;
+  //       history.push(urlParams.get('redirect') || '/');
+  //     } else {
+  //       message.success('注册成功，请登录！');
+  //       setActiveTab('login');
+  //       setLoginForm({
+  //         username: registerForm.username,
+  //         password: registerForm.password,
+  //       });
+  //     }
 
-      setRegisterForm({
-        username: '',
-        password: '',
-        confirmPassword: '',
-      });
-    } catch (error: any) {
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     setRegisterForm({
+  //       username: '',
+  //       password: '',
+  //       confirmPassword: '',
+  //     });
+  //   } catch (error: any) {
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const LoginForm = (
     <form className={styles.form} onSubmit={handleLogin}>
@@ -366,54 +366,54 @@ const Login: React.FC = () => {
     </form>
   );
 
-  const RegisterForm = (
-    <form className={`${styles.form} ${styles.registerForm}`} onSubmit={handleRegister}>
-      <div className={styles.inputGroup}>
-        <label className={styles.label}>用户名</label>
-        <input
-          type="text"
-          name="username"
-          className={styles.input}
-          placeholder="请输入用户名（至少3个字符）"
-          value={registerForm.username}
-          onChange={(e) => setRegisterForm({ ...registerForm, username: e.target.value })}
-          required
-          minLength={3}
-        />
-      </div>
+  // const RegisterForm = (
+  //   <form className={`${styles.form} ${styles.registerForm}`} onSubmit={handleRegister}>
+  //     <div className={styles.inputGroup}>
+  //       <label className={styles.label}>用户名</label>
+  //       <input
+  //         type="text"
+  //         name="username"
+  //         className={styles.input}
+  //         placeholder="请输入用户名（至少3个字符）"
+  //         value={registerForm.username}
+  //         onChange={(e) => setRegisterForm({ ...registerForm, username: e.target.value })}
+  //         required
+  //         minLength={3}
+  //       />
+  //     </div>
 
-      <div className={styles.inputGroup}>
-        <label className={styles.label}>密码</label>
-        <input
-          type="password"
-          name="password"
-          className={styles.input}
-          placeholder="请输入密码（至少6个字符）"
-          value={registerForm.password}
-          onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
-          required
-          minLength={6}
-        />
-      </div>
+  //     <div className={styles.inputGroup}>
+  //       <label className={styles.label}>密码</label>
+  //       <input
+  //         type="password"
+  //         name="password"
+  //         className={styles.input}
+  //         placeholder="请输入密码（至少6个字符）"
+  //         value={registerForm.password}
+  //         onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
+  //         required
+  //         minLength={6}
+  //       />
+  //     </div>
 
-      <div className={styles.inputGroup}>
-        <label className={styles.label}>确认密码</label>
-        <input
-          type="password"
-          name="confirmPassword"
-          className={styles.input}
-          placeholder="请再次输入密码"
-          value={registerForm.confirmPassword}
-          onChange={(e) => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })}
-          required
-        />
-      </div>
+  //     <div className={styles.inputGroup}>
+  //       <label className={styles.label}>确认密码</label>
+  //       <input
+  //         type="password"
+  //         name="confirmPassword"
+  //         className={styles.input}
+  //         placeholder="请再次输入密码"
+  //         value={registerForm.confirmPassword}
+  //         onChange={(e) => setRegisterForm({ ...registerForm, confirmPassword: e.target.value })}
+  //         required
+  //       />
+  //     </div>
 
-      <button type="submit" className={styles.button} disabled={loading}>
-        {loading ? '注册中...' : '注册'}
-      </button>
-    </form>
-  );
+  //     <button type="submit" className={styles.button} disabled={loading}>
+  //       {loading ? '注册中...' : '注册'}
+  //     </button>
+  //   </form>
+  // );
 
   return (
     <div className={styles.container}>
@@ -442,11 +442,11 @@ const Login: React.FC = () => {
                 </>
               ),
             },
-            {
-              key: 'register',
-              label: '注册账号',
-              children: RegisterForm,
-            },
+            // {
+            //   key: 'register',
+            //   label: '注册账号',
+            //   children: RegisterForm,
+            // },
           ]}
         />
       </div>

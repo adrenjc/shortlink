@@ -5,45 +5,45 @@ import axios from 'axios';
 const API_ENV = process.env.UMI_APP_ENV || 'dev'; // 默认开发环境
 
 // 根据域名获取对应的API地址
-const getDomainApiUrl = (): string => {
-  const hostname = window.location.hostname.toLowerCase(); // 转换为小写，增加匹配容错性
+// const getDomainApiUrl = (): string => {
+//   const hostname = window.location.hostname.toLowerCase(); // 转换为小写，增加匹配容错性
 
-  // 域名映射配置
-  const domainConfigs = [
-    {
-      pattern: /^(?:www\.)?duckchat\.(icu|xyz|fun)$/,
-      getApiUrl: (domain: string) => `https://www.duckchat.${domain}/api`,
-    },
-    {
-      pattern: /^(?:www\.)?adrenjc\.top$/,
-      getApiUrl: () => 'https://www.adrenjc.top/api',
-    },
-  ];
+//   // 域名映射配置
+//   const domainConfigs = [
+//     {
+//       pattern: /^(?:www\.)?duckchat\.(icu|xyz|fun)$/,
+//       getApiUrl: (domain: string) => `https://www.duckchat.${domain}/api`,
+//     },
+//     {
+//       pattern: /^(?:www\.)?adrenjc\.top$/,
+//       getApiUrl: () => 'https://www.adrenjc.top/api',
+//     },
+//   ];
 
-  // 尝试匹配域名
-  for (const config of domainConfigs) {
-    const match = hostname.match(config.pattern);
-    if (match) {
-      return config.getApiUrl(match[1]);
-    }
-  }
+//   // 尝试匹配域名
+//   for (const config of domainConfigs) {
+//     const match = hostname.match(config.pattern);
+//     if (match) {
+//       return config.getApiUrl(match[1]);
+//     }
+//   }
 
-  // 如果没有匹配到，返回默认API地址
-  return 'http://47.107.251.45/api';
-};
+//   // 如果没有匹配到，返回默认API地址
+//   return 'http://38.95.121.181/api';
+// };
 
 const ENV_CONFIG = {
   dev: {
     apiUrl: 'http://localhost:5000/api', // 开发环境
   },
   test: {
-    apiUrl: 'http://47.107.251.45/api', // 测试环境
+    apiUrl: 'http://38.95.121.181/api', // 测试环境
   },
   pre: {
-    apiUrl: 'http://47.107.251.45/api', // 预发环境
+    apiUrl: 'http://38.95.121.181/api', // 预发环境
   },
   prod: {
-    apiUrl: getDomainApiUrl(), // 根据域名动态获取API地址
+    apiUrl: 'http://38.95.121.181/api', // 根据域名动态获取API地址
   },
 };
 
