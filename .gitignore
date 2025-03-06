@@ -39,5 +39,6 @@ screenshot
 .eslintcache
 
 build
+build.tar.gz
 
 .cursor

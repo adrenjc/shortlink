@@ -1,0 +1,61 @@
+# 工作流的名称
+name: Deploy React App
+
+# 触发工作流的条件
+on:
+  push:
+    branches:
+      - main # 当代码推送到main分支时触发
+  pull_request:
+    branches:
+      - main # 当有针对main分支的PR时触发
+
+# 定义要执行的任务
+jobs:
+  # 任务名称为build-and-deploy
+  build-and-deploy:
+    # 指定运行环境为最新版本的Ubuntu
+    runs-on: ubuntu-latest
+
+    # 定义任务的步骤
+    steps:
+      # 第1步：检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v2 # 使用官方的checkout action
+
+      # 第2步：设置Node.js环境
+      - name: Setup Node.js
+        uses: actions/setup-node@v2 # 使用官方的setup-node action
+        with:
+          node-version: '16' # 指定Node.js版本
+
+      # 第3步：安装项目依赖
+      - name: Install dependencies
+        run: npm install # 执行npm install命令
+
+      # 第4步：构建项目
+      - name: Build project
+        run: npm run build:prod # 执行构建命令
+
+      # 第5步：部署到服务器
+      - name: Deploy to server
+        uses: appleboy/scp-action@master # 使用scp action进行文件传输
+        with:
+          # 服务器相关配置，从GitHub Secrets中获取
+          host: ${{ secrets.SERVER_HOST }} # 服务器地址
+          username: ${{ secrets.SERVER_USERNAME }} # 服务器用户名
+          key: ${{ secrets.SERVER_SSH_KEY }} # SSH密钥
+          source: 'build/*' # 要传输的源文件
+          target: '/var/www/shortlink' # 目标服务器路径
+          strip_components: 1 # 去除一层目录结构
+
+      # 添加第6步：重启 nginx
+      - name: Restart Nginx
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            sudo systemctl restart nginx
+            echo "Nginx has been restarted"
