@@ -50,7 +50,7 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME_181 }}
           key: ${{ secrets.SERVER_SSH_KEY_181 }}
           source: 'dist/*'
-          target: '/var/www/shortlink'
+          target: '/var/www/shortlink/dist'
           strip_components: 1
 
       # 添加第7步：重启 nginx
