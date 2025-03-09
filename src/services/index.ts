@@ -37,13 +37,13 @@ const ENV_CONFIG = {
     apiUrl: 'http://localhost:5000/api', // 开发环境
   },
   test: {
-    apiUrl: 'http://38.95.121.181/api', // 测试环境
+    apiUrl: 'https://onetop.vip/api', // 测试环境
   },
   pre: {
-    apiUrl: 'http://38.95.121.181/api', // 预发环境
+    apiUrl: 'https://onetop.vip/api', // 预发环境
   },
   prod: {
-    apiUrl: 'http://38.95.121.181/api', // 根据域名动态获取API地址
+    apiUrl: 'https://onetop.vip/api', // 根据域名动态获取API地址
   },
 };
 
