@@ -231,7 +231,6 @@ const Login: React.FC = () => {
         } catch (error: any) {
           if (error.response?.status === 401) {
             localStorage.removeItem(AUTH_TOKEN_KEY);
-            message.error('登录已过期，请重新登录');
           }
         }
       }
@@ -266,8 +265,6 @@ const Login: React.FC = () => {
         return;
       }
       setUserLoginState(result);
-    } catch (error: any) {
-      message.error(error.response?.data?.message || '登录失败，请重试！');
     } finally {
       setLoading(false);
     }

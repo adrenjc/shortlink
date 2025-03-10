@@ -97,7 +97,7 @@ apiClient.interceptors.response.use(
       case 401:
         // 未授权，清除token并跳转到登录页
         localStorage.removeItem('x-auth-token');
-        message.error('登录已过期，请重新登录');
+        message.error(errorMessage);
         // 可以在这里添加跳转到登录页的逻辑
         break;
       case 403:
