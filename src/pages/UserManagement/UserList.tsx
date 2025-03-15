@@ -1,12 +1,12 @@
 import { PERMISSION_CODES } from '@/constants/permissions';
 import { usePermission } from '@/hooks/usePermission';
-import { createUser, getAllUsers, updateUser } from '@/services/login';
+import { createUser, deleteUser, getAllUsers, updateUser } from '@/services/login';
 import { getRoles } from '@/services/role';
 import type { Role } from '@/services/role/typings';
-import { EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Form, Input, message, Modal, Select, Space, Tag } from 'antd';
+import { Button, Form, Input, message, Modal, Popconfirm, Select, Space, Tag } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useModel } from 'umi';
 
@@ -15,6 +15,7 @@ interface UserType {
   username: string;
   roles: Role[];
   createdAt: string;
+  isSystem: boolean;
 }
 
 const UserList: React.FC = () => {
@@ -92,6 +93,22 @@ const UserList: React.FC = () => {
     } catch (error: any) {}
   };
 
+  const handleDelete = async (id: string) => {
+    if (!hasPermission(PERMISSION_CODES.USER_DELETE)) {
+      message.error('没有删除权限');
+      return;
+    }
+    try {
+      await deleteUser(id);
+      message.success('删除成功');
+      if (actionRef.current) {
+        actionRef.current.reload();
+      }
+    } catch (error: any) {
+      message.error(error.message || '删除失败');
+    }
+  };
+
   const columns: ProColumns<UserType>[] = [
     {
       title: '用户名',
@@ -126,7 +143,7 @@ const UserList: React.FC = () => {
       title: '操作',
       key: 'action',
       search: false,
-      width: 80,
+      width: 120,
       align: 'center',
       render: (_, record) => (
         <Space>
@@ -136,6 +153,19 @@ const UserList: React.FC = () => {
             onClick={() => handleEdit(record)}
             disabled={!hasPermission(PERMISSION_CODES.USER_UPDATE)}
           />
+          <Popconfirm
+            title="确定要删除该用户吗？"
+            onConfirm={() => handleDelete(record._id)}
+            okText="确定"
+            cancelText="取消"
+          >
+            <Button
+              type="link"
+              danger
+              icon={<DeleteOutlined />}
+              disabled={!hasPermission(PERMISSION_CODES.USER_DELETE) || record.isSystem}
+            />
+          </Popconfirm>
         </Space>
       ),
     },
@@ -206,6 +236,7 @@ const UserList: React.FC = () => {
         footer={null}
         width={520}
         destroyOnClose
+        maskClosable={false}
         centered
       >
         <Form

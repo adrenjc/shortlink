@@ -23,6 +23,14 @@ type DomainItem = {
   createdAt: string;
 };
 
+type UpdateLinkParams = {
+  id: string;
+  data: {
+    longUrl: string;
+    customShortKey?: string;
+  };
+};
+
 export default () => {
   const [form] = Form.useForm();
   const actionRef = useRef<ActionType>();
@@ -54,8 +62,11 @@ export default () => {
         // 编辑模式
         await updateLink({
           id: currentItem._id,
-          data: { longUrl: values.longUrl },
-        });
+          data: {
+            longUrl: values.longUrl,
+            customShortKey: values.customShortKey,
+          },
+        } as UpdateLinkParams);
         message.success('更新成功');
       } else {
         // 新建模式
@@ -123,6 +134,7 @@ export default () => {
             form.setFieldsValue({
               longUrl: record.longUrl,
               customDomain: record.customDomain,
+              customShortKey: record.shortKey,
             });
             setModalVisible(true);
           }}
@@ -201,6 +213,25 @@ export default () => {
             rules={[{ required: true, type: 'url', message: '请输入有效的URL' }]}
           >
             <Input placeholder="请输入原始链接" />
+          </Form.Item>
+
+          <Form.Item
+            label="自定义短链key"
+            name="customShortKey"
+            extra="可选，长度4-6位，不填则自动生成"
+            rules={[
+              {
+                min: 4,
+                max: 6,
+                message: '长度必须在4-6位之间',
+              },
+              {
+                pattern: /^[a-zA-Z0-9-_]+$/,
+                message: '只能包含字母、数字、下划线和横线',
+              },
+            ]}
+          >
+            <Input placeholder="请输入自定义短链key" />
           </Form.Item>
 
           <Form.Item label="自定义域名" name="customDomain" extra="如不选择则使用默认域名">

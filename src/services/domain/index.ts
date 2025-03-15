@@ -73,6 +73,17 @@ export async function fetchAllDomains(params?: {
   }
 }
 
+// 更新 SSL 证书
+export const renewSSLCertificate = async (domain: string) => {
+  try {
+    const response = await apiRequest.post(`/domains/${domain}/ssl/renew`);
+    return response.data;
+  } catch (error) {
+    console.error('更新 SSL 证书失败:', error);
+    throw error;
+  }
+};
+
 // 导出类型定义
 export interface DomainResponse {
   success: boolean;

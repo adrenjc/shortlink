@@ -5,6 +5,7 @@ import {
   deleteDomain,
   fetchAllDomains,
   recheckDomain,
+  // renewSSLCertificate,
   verifyDomain,
 } from '@/services/domain';
 import { PlusOutlined } from '@ant-design/icons';
@@ -23,6 +24,13 @@ type DomainItem = {
     username: string;
     email: string;
   };
+  sslCertificate?: {
+    issuedAt: string;
+    expiresAt: string;
+    status: 'pending' | 'active' | 'expired' | 'error';
+  };
+  sslRemainingDays: number | null;
+  sslStatus: 'pending' | 'active' | 'renewal-needed' | 'expired';
 };
 
 export default () => {
@@ -77,7 +85,6 @@ export default () => {
       dataIndex: ['user', 'username'],
       ellipsis: true,
     },
-
     {
       title: '验证状态',
       dataIndex: 'verified',
@@ -88,6 +95,55 @@ export default () => {
         </Tag>
       ),
     },
+    // {
+    //   title: 'SSL 证书状态',
+    //   dataIndex: 'sslStatus',
+    //   search: false,
+    //   render: (_, record) => {
+    //     const getStatusConfig = (status: string) => {
+    //       switch (status) {
+    //         case 'active':
+    //           return { color: 'success', text: '正常' };
+    //         case 'renewal-needed':
+    //           return { color: 'warning', text: '需要续期' };
+    //         case 'expired':
+    //           return { color: 'error', text: '已过期' };
+    //         case 'pending':
+    //         default:
+    //           return { color: 'default', text: '未配置' };
+    //       }
+    //     };
+
+    //     const config = getStatusConfig(record.sslStatus);
+    //     return (
+    //       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+    //         <Tag color={config.color}>{config.text}</Tag>
+    //         {record.sslRemainingDays !== null && (
+    //           <div style={{ fontSize: '12px', color: '#666' }}>
+    //             {record.sslRemainingDays > 0 ? `剩余 ${record.sslRemainingDays} 天` : '已过期'}
+    //           </div>
+    //         )}
+    //         {(record.sslStatus === 'renewal-needed' || record.sslStatus !== 'expired') &&
+    //           hasPermission(PERMISSION_CODES.DOMAIN_MANAGE) && (
+    //             <Button
+    //               type="link"
+    //               size="small"
+    //               icon={<SyncOutlined />}
+    //               onClick={async () => {
+    //                 const result = await renewSSLCertificate(record.domain);
+    //                 if (result.success) {
+    //                   message.success('SSL 证书更新成功');
+    //                   actionRef.current?.reload();
+    //                 }
+    //               }}
+    //             >
+    //               更新证书
+    //             </Button>
+    //           )}
+    //       </div>
+    //     );
+    //   },
+    // },
     {
       title: '创建时间',
       dataIndex: 'createdAt',

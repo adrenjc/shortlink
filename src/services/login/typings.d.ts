@@ -100,4 +100,12 @@ declare namespace API {
     description?: string;
     type?: NoticeIconItemType;
   };
+
+  type BaseResponse = {
+    success: boolean;
+    message?: string;
+    data?: any;
+  };
 }
+
+export { API };

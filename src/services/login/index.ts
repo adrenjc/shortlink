@@ -1,6 +1,7 @@
 // @ts-ignore
 /* eslint-disable */
 import { apiRequest } from '@/services/index'; // 引入封装的请求方法
+import type { API } from './typings.d';
 
 /** 获取当前的用户 GET /api/currentUser */
 export async function currentUser() {
@@ -100,4 +101,9 @@ export async function register(data: { username: string; password: string }): Pr
     console.error('注册失败:', errorMessage);
     throw error;
   }
+}
+
+/** 删除用户 */
+export async function deleteUser(id: string) {
+  return apiRequest.delete(`/users/${id}`);
 }
