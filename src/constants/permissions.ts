@@ -28,6 +28,7 @@ export const PERMISSION_CODES = {
   LINK_UPDATE: 'link:update',
   LINK_DELETE: 'link:delete',
   LINK_MANAGE: 'link:manage',
+  LINK_VIEW_ALL: 'link:view:all',
 
   // 审计日志
   AUDIT_VIEW: 'audit:view',
@@ -58,7 +59,11 @@ export const PERMISSION_GROUPS = [
   },
   {
     label: '业务功能',
-    permissions: [PERMISSION_CODES.LINK_MANAGE, PERMISSION_CODES.DOMAIN_MANAGE],
+    permissions: [
+      PERMISSION_CODES.LINK_MANAGE,
+      PERMISSION_CODES.DOMAIN_MANAGE,
+      PERMISSION_CODES.LINK_VIEW_ALL,
+    ],
   },
   {
     label: '系统管理',

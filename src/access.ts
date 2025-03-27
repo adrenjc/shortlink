@@ -1,5 +1,14 @@
 import { PERMISSION_CODES } from '@/constants/permissions';
 
+// 定义CurrentUser类型
+type CurrentUser = {
+  id?: string;
+  username?: string;
+  isAdmin?: boolean;
+  permissions?: any[];
+  roles?: any[];
+};
+
 /**
  * @see https://umijs.org/docs/max/access#access
  *
@@ -9,7 +18,7 @@ import { PERMISSION_CODES } from '@/constants/permissions';
  * - hasAnyPermission: 检查是否有任意一个权限
  * - hasAllPermissions: 检查是否有所有权限
  */
-export default function access(initialState: { currentUser?: API.CurrentUser } | undefined) {
+export default function access(initialState: { currentUser?: CurrentUser } | undefined) {
   const { currentUser } = initialState ?? {};
 
   // 获取用户所有权限
@@ -67,6 +76,20 @@ export default function access(initialState: { currentUser?: API.CurrentUser } |
       if (!currentUser) return false;
       if (currentUser.username === 'admin') return true;
       return userPermissions.has(PERMISSION_CODES.ROLE_VIEW);
+    },
+
+    // 检查是否可以查看所有用户的短链接
+    canViewAllLinks: () => {
+      if (!currentUser) return false;
+      if (currentUser.username === 'admin') return true;
+      return userPermissions.has(PERMISSION_CODES.LINK_VIEW_ALL);
+    },
+
+    // 检查是否可以管理所有用户的短链接
+    canManageAllLinks: () => {
+      if (!currentUser) return false;
+      if (currentUser.username === 'admin') return true;
+      return userPermissions.has(PERMISSION_CODES.LINK_MANAGE);
     },
 
     canViewAllDomains: currentUser?.permissions?.includes('domain:view'),

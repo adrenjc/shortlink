@@ -19,7 +19,18 @@ export default function useShortLinks() {
   };
 
   // 修改函数名避免与导入的 updateLink 冲突
-  const updateShortLink = async ({ id, data }: { id: string; data: { longUrl: string } }) => {
+  const updateShortLink = async ({
+    id,
+    data,
+  }: {
+    id: string;
+    data: {
+      longUrl: string;
+      customShortKey?: string;
+      remark?: string;
+      customDomain?: string;
+    };
+  }) => {
     const response = await apiUpdateLink(id, data);
     if (response) {
       return true;
